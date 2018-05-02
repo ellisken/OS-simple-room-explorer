@@ -14,10 +14,12 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define ROOM_CT 7
+
 /***********************************************************************
 ************************** DATA STRUCTURES *****************************
 ***********************************************************************/
-Struct Room{
+struct Room{
     char *name;//Room name
     int connex_ct;//Number of connections
     char *connex_list;//List of room connections;
@@ -25,7 +27,7 @@ Struct Room{
 };
 
 // Define Graph struct for storing all created rooms
-Struct Graph{
+struct Graph{
   struct Room *room_set;//Container for room graph
 };
 
@@ -44,18 +46,18 @@ Struct Graph{
  * ** Post-Conditions: Returns a pointer to an initialized Graph
  * *********************************************************************/
 
-*Graph initGraph(int room_ct){
+struct Graph* initGraph(int room_ct){
     int i;
     assert(room_ct > 0);
     
     //Malloc new Graph
-    Graph *graph=malloc(sizeof(Graph));
+    struct Graph *graph=malloc(sizeof(struct Graph));
     //Malloc space for rooms
-    graph->room_set = malloc(sizeof(Room) * room_ct);
+    graph->room_set = malloc(sizeof(struct Room) * room_ct);
 
     //For each room in room_ct
     for(i=0; i < room_ct; i++){
-        Room *room = &graph->room_set[i]; //Add new blank room to room_set
+        struct Room *room = &graph->room_set[i]; //Add new blank room to room_set
         room->name = NULL;
         room->type = NULL;
         room->connex_ct = 0;
@@ -70,12 +72,16 @@ Struct Graph{
 /***********************************************************************
 ******************************** MAIN **********************************
 ***********************************************************************/
-int main{
+int main(){ 
         //Initialize graph
+        struct Graph *graph = initGraph(ROOM_CT);
+        assert(graph != NULL);
         //Connect graph
         //Name rooms
         //Assign types
         //Create dir
         //Print graph to files in dir
         //Delete graph
+        //
+        return 0;
 }
