@@ -22,7 +22,7 @@
 struct Room{
     char *name;//Room name
     int connex_ct;//Number of connections
-    char *connex_list;//List of room connections;
+    struct room *connex_list;//List of room connections;
     char *type;//start, mid, or end
 };
 
@@ -45,7 +45,6 @@ struct Graph{
  *      function's output
  * ** Post-Conditions: Returns a pointer to an initialized Graph
  * *********************************************************************/
-
 struct Graph* initGraph(int room_ct){
     int i;
     assert(room_ct > 0);
@@ -67,6 +66,38 @@ struct Graph* initGraph(int room_ct){
     return graph;
 }
 
+
+
+/*********************************************************************
+ * ** Function: getRandomRoom()
+ * ** Description: Returns a random pointer to a Room, does NOT 
+ *      validate if connection can be added.
+ * ** Parameters: pointer to Graph
+ * ** Pre-Conditions: There must exist an initialized  graph with Rooms.
+ * ** Post-Conditions: Returns a pointer to a room in the selected graph.
+ * *********************************************************************/
+struct Room* getRandomRoom(struct Graph* g){
+    //Generate a random number between 1-7
+    //Grab from graph @ corresponding index
+    //Return pointer for randomly chosen room
+}
+
+
+
+/*********************************************************************
+ * ** Function: canAddConnectionFrom()
+ * ** Description: Returns true if a connection can be added, else
+ *      returns false.
+ * ** Parameters: pointer to Room
+ * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
+int canAddConnectionFrom(struct Room* r){
+    //For given room, get connection count
+    //If count < 6, return 1, else return 0
+    if(r->connex_ct < 6) return 1;
+    else return 0;
+}
 
 
 /***********************************************************************
