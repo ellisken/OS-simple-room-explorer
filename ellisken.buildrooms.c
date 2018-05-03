@@ -15,7 +15,7 @@
 #include <time.h>
 #include <assert.h>
 
-#define ROOM_CT 2
+#define ROOM_CT 7
 #define MAX_CONNECTIONS 6
 
 /***********************************************************************
@@ -156,7 +156,14 @@ int isSameRoom(struct Room *a, struct Room *b)
 
 // Function for printing graph contents in current dir
 // with each room printed to a different file
-void createRoomFiles(){
+void createRoomFiles(struct Graph *graph){
+    int i, j;
+    for(i=0; i < ROOM_CT; i++){
+        printf("Room %i connection count: %i\n", i, graph->room_set[i]->connex_ct);
+        /*for(j=0; j < MAX_CONNECTIONS; j++){
+            printf("\t Connection %i: %s\n", j, graph->room_set[i]->connex_list[j]->name);
+        }*/
+    }
     return;
 }
 
@@ -183,6 +190,11 @@ void assignRoomTypes(){
  */
 void freeGraph(struct Graph* graph)
 {
+    int i;
+    for(i=0; i < ROOM_CT; i++){
+        free(graph->room_set[i]);
+    }
+    free(graph);
     return;
 }
 
@@ -211,7 +223,34 @@ int isGraphFull(struct Graph *graph)
     }
 }
 
+//Adds random connection between two rooms
+void addRandomConnection(struct Graph* graph)  
+{
+    struct Room *A;
+    struct Room *B;
 
+    //Assign a random room to A with room for connections
+    while(1)
+    {
+        A = getRandomRoom(graph);
+        if (canAddConnectionFrom(A) == 1)
+             break;
+    }
+
+    do
+    {
+        //Assign a random room to B
+        //until a room is found that has room for connections,
+        //is not the same room as A, and is not already connected to A
+        B = getRandomRoom(graph);
+    }
+    while(canAddConnectionFrom(B) == 0 || isSameRoom(A, B) == 1 || connectionAlreadyExists(A, B) == 1);
+
+    //Establish two-way connection between rooms
+    connectRoom(A, B);
+    connectRoom(B, A);
+    return;
+}
 
 /***********************************************************************
 ******************************** MAIN **********************************
@@ -220,7 +259,8 @@ int main(){
         //Initialize graph
         struct Graph *graph = initGraph(ROOM_CT);
         assert(graph != NULL);
-        graph->room_set[0]->connex_ct = 3;
+        
+        /*graph->room_set[0]->connex_ct = 3;
         graph->room_set[1]->connex_ct = 2;
 
         struct Room *room = getRandomRoom(graph);
@@ -239,14 +279,19 @@ int main(){
         result = isSameRoom(graph->room_set[0], graph->room_set[0]);
         printf("Result returned from isSameRoom (room1, room1): %i\n", result);
         result = isSameRoom(graph->room_set[1], graph->room_set[0]->connex_list[3]);
-        printf("Result returned from isSameRoom (room2, room1.2): %i\n", result);
+        printf("Result returned from isSameRoom (room2, room1.2): %i\n", result);*/
 
         //Connect graph
+        while(isGraphFull(graph) == 0){
+            addRandomConnection(graph);
+        }
         //Name rooms
         //Assign types
         //Create dir
         //Print graph to files in dir
+        createRoomFiles(graph);
         //Delete graph
+        freeGraph(graph);
         //
         return 0;
 }
