@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #define ROOM_CT 2
+#define MAX_CONNECTIONS 6
 
 /***********************************************************************
 ************************** DATA STRUCTURES *****************************
@@ -23,13 +24,13 @@
 struct Room{
     char *name;//Room name
     int connex_ct;//Number of connections
-    struct room *connex_list;//List of room connections;
+    struct Room *connex_list[MAX_CONNECTIONS];//List of room connections;
     char *type;//start, mid, or end
 };
 
 // Define Graph struct for storing all created rooms
 struct Graph{
-  struct Room *room_set;//Container for room graph
+  struct Room *room_set[ROOM_CT];//Container for room graph
 };
 
 
@@ -47,21 +48,25 @@ struct Graph{
  * ** Post-Conditions: Returns a pointer to an initialized Graph
  * *********************************************************************/
 struct Graph* initGraph(int room_ct){
-    int i;
+    int i, j;
     assert(room_ct > 0);
     
     //Malloc new Graph
     struct Graph *graph=malloc(sizeof(struct Graph));
-    //Malloc space for rooms
-    graph->room_set = malloc(sizeof(struct Room) * room_ct);
+    
+    //Set all rooms to NULL
+    //graph->room_set = malloc(sizeof(struct Room) * room_ct);
 
     //For each room in room_ct
     for(i=0; i < room_ct; i++){
-        struct Room *room = &graph->room_set[i]; //Add new blank room to room_set
-        room->name = NULL;
-        room->type = NULL;
-        room->connex_ct = 0;
-        room->connex_list = NULL;
+        graph->room_set[i] = malloc(sizeof(struct Room)); //Add new blank room to room_set
+        graph->room_set[i]->name = NULL;
+        graph->room_set[i]->type = NULL;
+        graph->room_set[i]->connex_ct = 0;
+        //Init connection list to all NULL pointers 
+        for(j=0; j < 6; j++){
+            graph->room_set[i]->connex_list[j] = NULL;
+        }
     }
     //Return Graph
     return graph;
@@ -81,9 +86,9 @@ struct Room* getRandomRoom(struct Graph* graph){
     struct Room *room;
     //Generate a random number between 0-6
     srand(time(NULL)); //seed PRNG
-    int rand_num = (rand() % 7);
+    int rand_num = (rand() % ROOM_CT);
     //Grab from graph @ corresponding index
-    room = &graph->room_set[rand_num];
+    room = graph->room_set[rand_num];
     //Return pointer for randomly chosen room
     return room;
 }
@@ -98,44 +103,40 @@ struct Room* getRandomRoom(struct Graph* graph){
  * ** Pre-Conditions: The ptr to Room must not be NULL
  * ** Post-Conditions: None
  * *********************************************************************/
-int canAddConnectionFrom(struct Room *r){
+int canAddConnectionFrom(struct Room *room){
     //For given room, get connection count
     //If count < 6, return 1, else return 0
-    if(r->connex_ct < 6) return 1;
+    if(room->connex_ct < 6) return 1;
     else return 0;
 }
 
 
 
-// Returns true if a connection can be added from Room x (< 6 outbound connections), false otherwise
-int CanAddConnectionFrom(struct Room *x) 
-{
-    //For given room, get connection count
-    //If count < 6, return true
-    //Else, return false
-    return;
-}
-
-
-
 // Returns true if a connection from Room x to Room y already exists, false otherwise
-int ConnectionAlreadyExists(struct Room *x, struct Room *y)
+int connectionAlreadyExists(struct Room *a, struct Room *b)
 {
-    //In room x’s array of connections
-        //Search for room y’s name
-        //If room y’s name in room x’s connections
-            //Return true
-        //Else, return false
-    return;
+    assert(a != NULL);
+    assert(b != NULL);
+    int i;
+    //Search all names in room a's connection list
+    for(i=0; i < a->connex_ct; i++){
+        //If a match is found, return true
+        if(b->name == a->connex_list[i]->name)
+            return 1;
+    }
+    //Else, return 0
+    return 0;
 }
 
 
 
-// Connects Rooms x and y together, does not check if this connection is valid
-void ConnectRoom(struct Room *x, struct Room *y) 
+// Connects Rooms a and b together, does not check if this connection is valid
+void connectRoom(struct Room *a, struct Room *b) 
 {
     //For room A, add pointer to B to A’s list of connections
+    a->connex_list[a->connex_ct] = b;
     //Increment room A’s connection count
+    a->connex_ct++;
     return;
 }
 
@@ -203,11 +204,11 @@ int isGraphFull(struct Graph *graph)
     //For each room in the graph
     for(i=0; i < ROOM_CT; i++){
         //If each room has more than 3 and less than 6 connections
-        if(graph->room_set[i].connex_ct > 3 && graph->room_set[i].connex_ct < 6)
+        if(graph->room_set[i]->connex_ct > 3 && graph->room_set[i]->connex_ct < 6)
             //return true
-            return 0;
+            return 1;
         //Else, return false
-        else return 1;
+        else return 0;
     }
 }
 
@@ -220,11 +221,14 @@ int main(){
         //Initialize graph
         struct Graph *graph = initGraph(ROOM_CT);
         assert(graph != NULL);
-        graph->room_set[0].connex_ct = 3;
-        graph->room_set[1].connex_ct = 5;
+        graph->room_set[0]->connex_ct = 3;
+        graph->room_set[1]->connex_ct = 6;
 
         struct Room *room = getRandomRoom(graph);
-        printf("The random room selected has %i connections", room->connex_ct);
+        printf("The random room selected has %i connections\n", room->connex_ct);
+
+        int result = canAddConnectionFrom(room);
+        printf("Result returned from trying to add connection to room: %i\n", result); 
 
         //Connect graph
         //Name rooms
