@@ -77,9 +77,11 @@ struct Graph* initGraph(int room_ct){
  * ** Post-Conditions: Returns a pointer to a room in the selected graph.
  * *********************************************************************/
 struct Room* getRandomRoom(struct Graph* g){
+    struct Room *room;
     //Generate a random number between 1-7
     //Grab from graph @ corresponding index
     //Return pointer for randomly chosen room
+    return room;
 }
 
 
@@ -92,7 +94,7 @@ struct Room* getRandomRoom(struct Graph* g){
  * ** Pre-Conditions: The ptr to Room must not be NULL
  * ** Post-Conditions: None
  * *********************************************************************/
-int canAddConnectionFrom(struct Room* r){
+int canAddConnectionFrom(struct Room *r){
     //For given room, get connection count
     //If count < 6, return 1, else return 0
     if(r->connex_ct < 6) return 1;
@@ -102,64 +104,70 @@ int canAddConnectionFrom(struct Room* r){
 
 
 // Returns true if a connection can be added from Room x (< 6 outbound connections), false otherwise
-bool CanAddConnectionFrom(Room x) 
+int CanAddConnectionFrom(struct Room *x) 
 {
     //For given room, get connection count
     //If count < 6, return true
     //Else, return false
+    return;
 }
 
 
 
 // Returns true if a connection from Room x to Room y already exists, false otherwise
-bool ConnectionAlreadyExists(x, y)
+int ConnectionAlreadyExists(struct Room *x, struct Room *y)
 {
     //In room x’s array of connections
         //Search for room y’s name
         //If room y’s name in room x’s connections
             //Return true
         //Else, return false
+    return;
 }
 
 
 
 // Connects Rooms x and y together, does not check if this connection is valid
-void ConnectRoom(Room x, Room y) 
+void ConnectRoom(struct Room *x, struct Room *y) 
 {
     //For room A, add pointer to B to A’s list of connections
     //Increment room A’s connection count
+    return;
 }
 
 
 
 // Returns true if Rooms x and y are the same Room, false otherwise
-bool IsSameRoom(Room x, Room y) 
+int IsSameRoom(struct Room *x, struct Room *y) 
 {
     //For the given rooms, get the names
     //Compare names
     //If names are the same
         //Return true
     //Else, return false
+    return;
 }
 
 
 
 // Function for printing graph contents in current dir
 // with each room printed to a different file
-Void createRoomFiles(){
-
+void createRoomFiles(){
+    return;
 }
 
 
 
 //Function to assign names to rooms
-Void nameRooms(){
+void nameRooms(){
+    return;
 }
 
 
 
 //Function to assign types to rooms
-Void assignRoomTypes(){
+void assignRoomTypes(){
+    return;
 }
 
 
@@ -171,7 +179,31 @@ Void assignRoomTypes(){
  */
 void freeGraph(struct Graph* graph)
 {
+    return;
 }
+
+
+
+/*********************************************************************
+ * ** Function: isGraphfull()
+ * ** Description: Returns true if a connection can be added, else
+ *      returns false.
+ * ** Parameters: pointer to Room
+ * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
+// Returns true if all rooms have 3 to 6 outbound connections, false otherwise
+int isGraphFull(struct Graph *graph)  
+{
+    int i;
+    //For each room in the graph
+    for(i=0; i < ROOM_CT; i++){
+        if(graph->room_set[i].connex_ct < 3 || graph->room_set[i].connex_ct > 6)
+            return 1;
+        else return 0;
+    }
+}
+
 
 
 /***********************************************************************
