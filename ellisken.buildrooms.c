@@ -121,7 +121,7 @@ int connectionAlreadyExists(struct Room *a, struct Room *b)
     //Search all names in room a's connection list
     for(i=0; i < a->connex_ct; i++){
         //If a match is found, return true
-        if(b->name == a->connex_list[i]->name)
+        if(b == a->connex_list[i])
             return 1;
     }
     //Else, return 0
@@ -222,13 +222,20 @@ int main(){
         struct Graph *graph = initGraph(ROOM_CT);
         assert(graph != NULL);
         graph->room_set[0]->connex_ct = 3;
-        graph->room_set[1]->connex_ct = 6;
+        graph->room_set[1]->connex_ct = 2;
 
         struct Room *room = getRandomRoom(graph);
         printf("The random room selected has %i connections\n", room->connex_ct);
 
         int result = canAddConnectionFrom(room);
-        printf("Result returned from trying to add connection to room: %i\n", result); 
+        printf("Result returned from canAddConnection to room: %i\n", result);
+
+        result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
+        printf("Result returned from connectionAlreadyExists: %i\n", result);
+        printf("Connecting rooms 1 and 2\n");
+        connectRoom(graph->room_set[0], graph->room_set[1]);
+        result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
+        printf("Result returned from connectionAlreadyExists: %i\n", result);
 
         //Connect graph
         //Name rooms
