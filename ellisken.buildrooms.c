@@ -100,6 +100,80 @@ int canAddConnectionFrom(struct Room* r){
 }
 
 
+
+// Returns true if a connection can be added from Room x (< 6 outbound connections), false otherwise
+bool CanAddConnectionFrom(Room x) 
+{
+    //For given room, get connection count
+    //If count < 6, return true
+    //Else, return false
+}
+
+
+
+// Returns true if a connection from Room x to Room y already exists, false otherwise
+bool ConnectionAlreadyExists(x, y)
+{
+    //In room x’s array of connections
+        //Search for room y’s name
+        //If room y’s name in room x’s connections
+            //Return true
+        //Else, return false
+}
+
+
+
+// Connects Rooms x and y together, does not check if this connection is valid
+void ConnectRoom(Room x, Room y) 
+{
+    //For room A, add pointer to B to A’s list of connections
+    //Increment room A’s connection count
+}
+
+
+
+// Returns true if Rooms x and y are the same Room, false otherwise
+bool IsSameRoom(Room x, Room y) 
+{
+    //For the given rooms, get the names
+    //Compare names
+    //If names are the same
+        //Return true
+    //Else, return false
+}
+
+
+
+// Function for printing graph contents in current dir
+// with each room printed to a different file
+Void createRoomFiles(){
+
+}
+
+
+
+//Function to assign names to rooms
+Void nameRooms(){
+}
+
+
+
+//Function to assign types to rooms
+Void assignRoomTypes(){
+}
+
+
+
+//Function to delete created graph
+/**
+ * Frees all memory allocated for a graph and the graph itself.
+ * @param graph
+ */
+void freeGraph(struct Graph* graph)
+{
+}
+
+
 /***********************************************************************
 ******************************** MAIN **********************************
 ***********************************************************************/
