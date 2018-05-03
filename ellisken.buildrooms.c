@@ -79,8 +79,6 @@ struct Graph* initGraph(int room_ct){
  * *********************************************************************/
 struct Room* getRandomRoom(struct Graph* graph){
     struct Room *room;
-    //Generate a random number between 0-6
-    srand(time(NULL)); //seed pseudo-random num generator
     int rand_num = (rand() % ROOM_CT);
     //Grab from graph @ corresponding index
     room = graph->room_set[rand_num];
@@ -178,25 +176,57 @@ void createRoomFiles(struct Graph *graph){
     assert(graph != NULL);
     int i, j;
     for(i=0; i < ROOM_CT; i++){
-        printf("Room %i connection count: %i\n", i, graph->room_set[i]->connex_ct);
-        /*for(j=0; j < MAX_CONNECTIONS; j++){
-            printf("\t Connection %i: %s\n", j, graph->room_set[i]->connex_list[j]->name);
-        }*/
+        printf("Room %i name: %s\n", i+1, graph->room_set[i]->name);
+        printf("Room %i connections: %i\n", i+1, graph->room_set[i]->connex_ct);
+        for(j=0; j < graph->room_set[i]->connex_ct; j++){
+            printf("\t Connection %i: %s\n", j+1, graph->room_set[i]->connex_list[j]->name);
+        }
     }
     return;
 }
 
 
-//Function to assign names to rooms
 /*********************************************************************
- * ** Function: isGraphfull()
- * ** Description: Returns true if a connection can be added, else
- *      returns false.
- * ** Parameters: pointer to Room
- * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Function: nameRooms()
+ * ** Description: Assigns a random name to each room in the given
+ *      graph
+ * ** Parameters: pointer to array of name strings, pointer to graph
+ * ** Pre-Conditions: The ptr parameters must not be NULL
  * ** Post-Conditions: None
  * *********************************************************************/
-void nameRooms(){
+void nameRooms(char *names[], struct Graph *graph){
+    int i,j, num;
+    int used = 1; //Used for drawing random names until
+                          //an unused name is found
+
+    //Container for keeping track of used names
+    int used_names[ROOM_CT];
+    //Fill used_names array with -1 
+    //for debugging
+    for(i=0; i < ROOM_CT; i++){
+        used_names[i] = -1;
+    }
+    
+    //For each room in the graph
+    for(i=0; i < ROOM_CT; i++){
+        //So long as a name has been used, keep
+        //generating a random name
+        do{
+            num = rand() % 10;
+            used = 0;//Assume name not in used_names
+            for(j=0; j < ROOM_CT; j++){
+                //If found in used_names, set used = true
+                if(used_names[j] == num) used = 1;
+            }
+        }
+        while(used);
+        //Else, grab name from names[] and assign it to the room
+        graph->room_set[i]->name = names[num];
+        //Add num to used_names
+        used_names[i] = num;
+        //Reset used for loop control
+        used = 1;
+    }
     return;
 }
 
@@ -305,43 +335,61 @@ void addRandomConnection(struct Graph* graph)
 /***********************************************************************
 ******************************** MAIN **********************************
 ***********************************************************************/
-int main(){ 
-        //Initialize graph
-        struct Graph *graph = initGraph(ROOM_CT);
-        assert(graph != NULL);
-        
-        /*graph->room_set[0]->connex_ct = 3;
-        graph->room_set[1]->connex_ct = 2;
-
-        struct Room *room = getRandomRoom(graph);
-        printf("The random room selected has %i connections\n", room->connex_ct);
-
-        int result = canAddConnectionFrom(room);
-        printf("Result returned from canAddConnection to room: %i\n", result);
-
-        result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
-        printf("Result returned from connectionAlreadyExists: %i\n", result);
-        printf("Connecting rooms 1 and 2\n");
-        connectRoom(graph->room_set[0], graph->room_set[1]);
-        result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
-        printf("Result returned from connectionAlreadyExists: %i\n", result);
+int main(){
+    //Generate a random number between 0-6
+    srand(time(NULL)); //seed pseudo-random num generator
     
-        result = isSameRoom(graph->room_set[0], graph->room_set[0]);
-        printf("Result returned from isSameRoom (room1, room1): %i\n", result);
-        result = isSameRoom(graph->room_set[1], graph->room_set[0]->connex_list[3]);
-        printf("Result returned from isSameRoom (room2, room1.2): %i\n", result);*/
+    //Create array of pointers to store
+    //list of names
+    char *room_names[] = {
+        "BEDCHMBR",
+        "GRTHALL",
+        "CHAPEL",
+        "PRIVY",
+        "LARDER",
+        "BOUDOIR",
+        "GTHOUSE",
+        "DUNGEON",
+        "DOVECOTE",
+        "SOLAR"
+    };
+    //Initialize graph
+    struct Graph *graph = initGraph(ROOM_CT);
+    assert(graph != NULL);
+    
+    /*graph->room_set[0]->connex_ct = 3;
+    graph->room_set[1]->connex_ct = 2;
 
-        //Connect graph
-        while(isGraphFull(graph) == 0){
-            addRandomConnection(graph);
-        }
-        //Name rooms
-        //Assign types
-        //Create dir
-        //Print graph to files in dir
-        createRoomFiles(graph);
-        //Delete graph
-        freeGraph(graph);
-        //
-        return 0;
+    struct Room *room = getRandomRoom(graph);
+    printf("The random room selected has %i connections\n", room->connex_ct);
+
+    int result = canAddConnectionFrom(room);
+    printf("Result returned from canAddConnection to room: %i\n", result);
+
+    result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
+    printf("Result returned from connectionAlreadyExists: %i\n", result);
+    printf("Connecting rooms 1 and 2\n");
+    connectRoom(graph->room_set[0], graph->room_set[1]);
+    result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
+    printf("Result returned from connectionAlreadyExists: %i\n", result);
+
+    result = isSameRoom(graph->room_set[0], graph->room_set[0]);
+    printf("Result returned from isSameRoom (room1, room1): %i\n", result);
+    result = isSameRoom(graph->room_set[1], graph->room_set[0]->connex_list[3]);
+    printf("Result returned from isSameRoom (room2, room1.2): %i\n", result);*/
+
+    //Connect graph
+    while(isGraphFull(graph) == 0){
+        addRandomConnection(graph);
+    }
+    //Name rooms
+    nameRooms(room_names, graph);
+    //Assign types
+    //Create dir
+    //Print graph to files in dir
+    createRoomFiles(graph);
+    //Delete graph
+    freeGraph(graph);
+    //
+    return 0;
 }
