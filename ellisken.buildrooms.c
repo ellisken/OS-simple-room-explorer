@@ -143,14 +143,13 @@ void connectRoom(struct Room *a, struct Room *b)
 
 
 // Returns true if Rooms x and y are the same Room, false otherwise
-int IsSameRoom(struct Room *x, struct Room *y) 
+int isSameRoom(struct Room *a, struct Room *b) 
 {
-    //For the given rooms, get the names
-    //Compare names
-    //If names are the same
-        //Return true
+    //If pointers are the same, return true (i.e., rooms are the same)
+    if(a == b)
+        return 1;
     //Else, return false
-    return;
+    return 0;
 }
 
 
@@ -236,6 +235,11 @@ int main(){
         connectRoom(graph->room_set[0], graph->room_set[1]);
         result = connectionAlreadyExists(graph->room_set[0], graph->room_set[1]);
         printf("Result returned from connectionAlreadyExists: %i\n", result);
+    
+        result = isSameRoom(graph->room_set[0], graph->room_set[0]);
+        printf("Result returned from isSameRoom (room1, room1): %i\n", result);
+        result = isSameRoom(graph->room_set[1], graph->room_set[0]->connex_list[3]);
+        printf("Result returned from isSameRoom (room2, room1.2): %i\n", result);
 
         //Connect graph
         //Name rooms
