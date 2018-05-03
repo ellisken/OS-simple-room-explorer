@@ -40,7 +40,7 @@ struct Graph{
 ***********************************************************************/
 /*********************************************************************
  * ** Function: initGraph()
- * ** Description: Initializes a Graph struct with 7 rooms.
+ * ** Description: Initializes a Graph struct with room_ct rooms.
  * ** Parameters: int room_ct, signifying the number of rooms to
  *      create.
  * ** Pre-Conditions: There must exist a ptr to Graph to receive the
@@ -49,14 +49,10 @@ struct Graph{
  * *********************************************************************/
 struct Graph* initGraph(int room_ct){
     int i, j;
-    assert(room_ct > 0);
     
-    //Malloc new Graph
+    //Reserve memory for the graph
     struct Graph *graph=malloc(sizeof(struct Graph));
     
-    //Set all rooms to NULL
-    //graph->room_set = malloc(sizeof(struct Room) * room_ct);
-
     //For each room in room_ct
     for(i=0; i < room_ct; i++){
         graph->room_set[i] = malloc(sizeof(struct Room)); //Add new blank room to room_set
@@ -73,7 +69,6 @@ struct Graph* initGraph(int room_ct){
 }
 
 
-
 /*********************************************************************
  * ** Function: getRandomRoom()
  * ** Description: Returns a random pointer to a Room, does NOT 
@@ -85,14 +80,13 @@ struct Graph* initGraph(int room_ct){
 struct Room* getRandomRoom(struct Graph* graph){
     struct Room *room;
     //Generate a random number between 0-6
-    srand(time(NULL)); //seed PRNG
+    srand(time(NULL)); //seed pseudo-random num generator
     int rand_num = (rand() % ROOM_CT);
     //Grab from graph @ corresponding index
     room = graph->room_set[rand_num];
     //Return pointer for randomly chosen room
     return room;
 }
-
 
 
 /*********************************************************************
@@ -111,8 +105,14 @@ int canAddConnectionFrom(struct Room *room){
 }
 
 
-
-// Returns true if a connection from Room x to Room y already exists, false otherwise
+/*********************************************************************
+ * ** Function: connectionAlreadyExists()
+ * ** Description: Returns true if a connection from Room a to Room b
+ *      already exists, else returns fals
+ * ** Parameters: pointers to Rooms a and b
+ * ** Pre-Conditions: The ptrs must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 int connectionAlreadyExists(struct Room *a, struct Room *b)
 {
     assert(a != NULL);
@@ -129,10 +129,17 @@ int connectionAlreadyExists(struct Room *a, struct Room *b)
 }
 
 
-
-// Connects Rooms a and b together, does not check if this connection is valid
+/*********************************************************************
+ * ** Function: connectRoom()
+ * ** Description: Connects Rooms a and b together, does not check if
+ *      the connection is valid.
+ * ** Parameters: pointers to rooms a and b
+ * ** Pre-Conditions: The pointers must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 void connectRoom(struct Room *a, struct Room *b) 
 {
+    assert(a != NULL && b != NULL);
     //For room A, add pointer to B to A’s list of connections
     a->connex_list[a->connex_ct] = b;
     //Increment room A’s connection count
@@ -141,8 +148,14 @@ void connectRoom(struct Room *a, struct Room *b)
 }
 
 
-
-// Returns true if Rooms x and y are the same Room, false otherwise
+/*********************************************************************
+ * ** Function: isSameRoom()
+ * ** Description: Returns true if Rooms a and b are the same based
+ *      on pointer equivalency.
+ * ** Parameters: pointers to rooms a and b
+ * ** Pre-Conditions: None
+ * ** Post-Conditions: None
+ * *********************************************************************/
 int isSameRoom(struct Room *a, struct Room *b) 
 {
     //If pointers are the same, return true (i.e., rooms are the same)
@@ -153,10 +166,16 @@ int isSameRoom(struct Room *a, struct Room *b)
 }
 
 
-
-// Function for printing graph contents in current dir
-// with each room printed to a different file
+/*********************************************************************
+ * ** Function: createRoomFiles()
+ * ** Description: Creates new directory and creates individual
+ *      files for each room containing room details
+ * ** Parameters: pointer to Graph
+ * ** Pre-Conditions: The ptr to Graph must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 void createRoomFiles(struct Graph *graph){
+    assert(graph != NULL);
     int i, j;
     for(i=0; i < ROOM_CT; i++){
         printf("Room %i connection count: %i\n", i, graph->room_set[i]->connex_ct);
@@ -168,36 +187,53 @@ void createRoomFiles(struct Graph *graph){
 }
 
 
-
 //Function to assign names to rooms
+/*********************************************************************
+ * ** Function: isGraphfull()
+ * ** Description: Returns true if a connection can be added, else
+ *      returns false.
+ * ** Parameters: pointer to Room
+ * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 void nameRooms(){
     return;
 }
 
 
-
 //Function to assign types to rooms
+/*********************************************************************
+ * ** Function: isGraphfull()
+ * ** Description: Returns true if a connection can be added, else
+ *      returns false.
+ * ** Parameters: pointer to Room
+ * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 void assignRoomTypes(){
     return;
 }
 
 
-
-//Function to delete created graph
-/**
- * Frees all memory allocated for a graph and the graph itself.
- * @param graph
- */
+/*********************************************************************
+ * ** Function: freeGraph()
+ * ** Description: Frees all memory allocated for the graph's rooms
+ *      and for the graph itself.
+ * ** Parameters: pointer to Graph
+ * ** Pre-Conditions: None
+ * ** Post-Conditions: None
+ * *********************************************************************/
 void freeGraph(struct Graph* graph)
 {
     int i;
+    //Free each room in the graph
     for(i=0; i < ROOM_CT; i++){
         free(graph->room_set[i]);
     }
+    //Free the graph itself
     free(graph);
     return;
 }
-
 
 
 /*********************************************************************
@@ -223,9 +259,21 @@ int isGraphFull(struct Graph *graph)
     }
 }
 
+
+/*********************************************************************
+ * ** Function: addRandomConnection()
+ * ** Description: Retrieves two randomly-selected rooms from the graph,
+ *      then connects them if both have room for an additional 
+ *      connection, they have no existing connection to each other, and
+ *      they are not the same room
+ * ** Parameters: pointer to Graph
+ * ** Pre-Conditions: The ptr to Graph must not be NULL
+ * ** Post-Conditions: None
+ * *********************************************************************/
 //Adds random connection between two rooms
 void addRandomConnection(struct Graph* graph)  
 {
+    assert(graph != NULL);
     struct Room *A;
     struct Room *B;
 
@@ -251,6 +299,8 @@ void addRandomConnection(struct Graph* graph)
     connectRoom(B, A);
     return;
 }
+
+
 
 /***********************************************************************
 ******************************** MAIN **********************************
