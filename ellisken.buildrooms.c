@@ -139,7 +139,7 @@ void connectRoom(struct Room *a, struct Room *b)
     //For room A, add pointer to B to A’s list of connections
     a->connex_list[a->connex_ct] = b;
     //Increment room A’s connection count
-    a->connex_ct += 1;
+    a->connex_ct++;
     return;
 }
 
@@ -175,10 +175,11 @@ void createRoomFiles(struct Graph *graph){
     int i, j;
     for(i=0; i < ROOM_CT; i++){
         printf("Room %i name: %s\n", i+1, graph->room_set[i]->name);
-        printf("\tRoom %i connections: %i\n", i+1, graph->room_set[i]->connex_ct);
+        printf("\tConnections: %i\n", graph->room_set[i]->connex_ct);
         for(j=0; j < graph->room_set[i]->connex_ct; j++){
             printf("\t Connection %i: %s\n", j+1, graph->room_set[i]->connex_list[j]->name);
         }
+        printf("\tType: %s\n\n", graph->room_set[i]->type);
     }
     return;
 }
@@ -229,16 +230,37 @@ void nameRooms(char *names[], struct Graph *graph){
 }
 
 
-//Function to assign types to rooms
 /*********************************************************************
- * ** Function: isGraphfull()
- * ** Description: Returns true if a connection can be added, else
- *      returns false.
- * ** Parameters: pointer to Room
- * ** Pre-Conditions: The ptr to Room must not be NULL
+ * ** Function: assignRoomTypes()
+ * ** Description: Randomly assigns types to rooms, with one 
+ *      START_ROOM, one END_ROOM, and 5 MID_ROOMs
+ * ** Parameters: pointer to Graph
+ * ** Pre-Conditions: The ptr to Graph must not be NULL
  * ** Post-Conditions: None
  * *********************************************************************/
-void assignRoomTypes(){
+void assignRoomTypes(struct Graph *graph){
+    int i, start, end;
+    int same = 1; //Used for avoiding assignment of start and end to same room
+
+    //Get a random number to randomly select a room for start
+    start = rand() % ROOM_CT;
+    graph->room_set[start]->type = "START_ROOM";
+    //Do the same to randomly select an end room
+    do{
+        end = rand() % ROOM_CT;
+        same = 0;
+        if(end == start)
+            same = 1;
+    }while(same);
+    graph->room_set[end]->type = "END_ROOM";
+
+    //Make all other rooms MID_ROOM
+    for(i = 0; i < ROOM_CT; i++){
+        //Checking against NULL to weed out start/end rooms
+        //All types are set to NULL at initialization
+        if(graph->room_set[i]->type != "START_ROOM" && graph->room_set[i]->type != "END_ROOM")
+            graph->room_set[i]->type = "MID_ROOM";
+    }
     return;
 }
 
@@ -314,7 +336,6 @@ void addRandomConnection(struct Graph* graph)
         if (canAddConnectionFrom(A) == 1)
              break;
     }
-
     do
     {
         //Assign a random room to B
@@ -385,6 +406,7 @@ int main(){
     //Name rooms
     nameRooms(room_names, graph);
     //Assign types
+    assignRoomTypes(graph);
     //Create dir
     //Print graph to files in dir
     createRoomFiles(graph);
