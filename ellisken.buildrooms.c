@@ -12,9 +12,10 @@
  * *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <assert.h>
 
-#define ROOM_CT 7
+#define ROOM_CT 2
 
 /***********************************************************************
 ************************** DATA STRUCTURES *****************************
@@ -76,10 +77,13 @@ struct Graph* initGraph(int room_ct){
  * ** Pre-Conditions: There must exist an initialized  graph with Rooms.
  * ** Post-Conditions: Returns a pointer to a room in the selected graph.
  * *********************************************************************/
-struct Room* getRandomRoom(struct Graph* g){
+struct Room* getRandomRoom(struct Graph* graph){
     struct Room *room;
-    //Generate a random number between 1-7
+    //Generate a random number between 0-6
+    srand(time(NULL)); //seed PRNG
+    int rand_num = (rand() % 7);
     //Grab from graph @ corresponding index
+    room = &graph->room_set[rand_num];
     //Return pointer for randomly chosen room
     return room;
 }
@@ -198,9 +202,12 @@ int isGraphFull(struct Graph *graph)
     int i;
     //For each room in the graph
     for(i=0; i < ROOM_CT; i++){
-        if(graph->room_set[i].connex_ct < 3 || graph->room_set[i].connex_ct > 6)
-            return 1;
-        else return 0;
+        //If each room has more than 3 and less than 6 connections
+        if(graph->room_set[i].connex_ct > 3 && graph->room_set[i].connex_ct < 6)
+            //return true
+            return 0;
+        //Else, return false
+        else return 1;
     }
 }
 
@@ -213,6 +220,12 @@ int main(){
         //Initialize graph
         struct Graph *graph = initGraph(ROOM_CT);
         assert(graph != NULL);
+        graph->room_set[0].connex_ct = 3;
+        graph->room_set[1].connex_ct = 5;
+
+        struct Room *room = getRandomRoom(graph);
+        printf("The random room selected has %i connections", room->connex_ct);
+
         //Connect graph
         //Name rooms
         //Assign types
