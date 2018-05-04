@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 #include <assert.h>
 
 #define ROOM_CT 7
@@ -172,6 +173,17 @@ int isSameRoom(struct Room *a, struct Room *b)
  * *********************************************************************/
 void createRoomFiles(struct Graph *graph){
     assert(graph != NULL);
+
+    //Get process ID
+    int pid = getpid();
+    char buffer[30];
+    //Create string for new directory name
+    char directoryname[16] = "ellisken.rooms.";
+    sprintf(buffer,"%s%i", directoryname, pid);
+    printf("The complete directory name is %s\n", buffer);
+    //Create new readable directory
+    //For each room in the graph, create a new file
+        //Print that room's details in the file
     int i, j;
     for(i=0; i < ROOM_CT; i++){
         printf("Room %i name: %s\n", i+1, graph->room_set[i]->name);
