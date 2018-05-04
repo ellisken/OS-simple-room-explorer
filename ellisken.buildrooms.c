@@ -176,15 +176,18 @@ void createRoomFiles(struct Graph *graph){
 
     //Get process ID
     int pid = getpid();
+    //Create buffer for string cat
     char buffer[30];
     memset(buffer, '\0', 30);
     //Create string for new directory name
     char directoryname[16];
     memset(directoryname, '\0', 16);
     strcpy(directoryname, "ellisken.rooms.");
+    //Concat name and pid
     sprintf(buffer,"%s%i", directoryname, pid);
-    printf("The complete directory name is %s\n", buffer);
+    
     //Create new readable directory
+    mkdir(buffer, 0755);
     //For each room in the graph, create a new file
         //Print that room's details in the file
     int i, j;
