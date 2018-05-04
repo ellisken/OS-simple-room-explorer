@@ -178,28 +178,28 @@ void createRoomFiles(struct Graph *graph){
     //Get process ID
     int pid = getpid();
     //Create buffer for string cat
-    char buffer[30];
-    memset(buffer, '\0', 30);
+    char directory[30];
+    memset(directory, '\0', 30);
     //Create string for new directory name
-    char directoryname[16];
-    memset(directoryname, '\0', 16);
-    strcpy(directoryname, "ellisken.rooms.");
+    char onid_rooms[16];
+    memset(onid_rooms, '\0', 16);
+    strcpy(onid_rooms, "ellisken.rooms.");
     //Concat name and pid
-    sprintf(buffer,"%s%i", directoryname, pid);
+    sprintf(directory,"%s%i", onid_rooms, pid);
     //Create new readable directory
     //and assert success
-    result = mkdir(buffer, 0755);
+    result = mkdir(directory, 0755);
     assert(result == 0);
     //For each room in the graph, create a file name "filen" and file handle
+    //with correct path (preceded by new directory)
     for(i=0; i < ROOM_CT; i++){
         FILE *file_descriptor;
-        char file[6];
-        memset(file, '\0', 6);
+        char file[30];
+        memset(file, '\0', 30);
         char file_frag[5];
         memset(file, '\0', 5);
         strcpy(file_frag, "file");
-        sprintf(file, "%s%i", file_frag, i);
-        printf("File name created, now printing to file\n");
+        sprintf(file, "%s/%s%i", directory, file_frag, i);
         //Print that room's details in the read/write file
         file_descriptor = fopen(file, "wr");
         fprintf(file_descriptor, "ROOM NAME: %s\n", graph->room_set[i]->name);
