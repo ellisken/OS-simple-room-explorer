@@ -177,8 +177,11 @@ void createRoomFiles(struct Graph *graph){
     //Get process ID
     int pid = getpid();
     char buffer[30];
+    memset(buffer, '\0', 30);
     //Create string for new directory name
-    char directoryname[16] = "ellisken.rooms.";
+    char directoryname[16];
+    memset(directoryname, '\0', 16);
+    strcpy(directoryname, "ellisken.rooms.");
     sprintf(buffer,"%s%i", directoryname, pid);
     printf("The complete directory name is %s\n", buffer);
     //Create new readable directory
