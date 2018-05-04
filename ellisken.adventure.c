@@ -11,8 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <dirent.h>
 #include <string.h>
-#include <fcntl.h>
 #include <assert.h>
 
 #define ROOM_CT 7
@@ -34,6 +34,7 @@ struct GameState{
 /***********************************************************************
 ************************ FUNCTION DEFINITIONS **************************
 ***********************************************************************/
+
 /*********************************************************************
  * ** Function: initGameState()
  * ** Description: Initializes a gamestate struct
@@ -78,6 +79,23 @@ void freeGameState(struct GameState* gamestate)
     free(gamestate);
     return;
 }
+
+
+/*********************************************************************
+ * ** Function: findRightDir()
+ * ** Description: Opens the most recently created ellisken.rooms.<ID>
+ *      directory created
+ * ** Parameters: 
+ * ** Pre-Conditions: There must exist a ptr to dirent to receive the
+ *      function's output
+ * ** Post-Conditions: Returns a pointer to the correct directory
+ * *********************************************************************/
+struct dirent* findRightDir(){
+
+
+
+    return;
+}  
 
 
 /***********************************************************************
