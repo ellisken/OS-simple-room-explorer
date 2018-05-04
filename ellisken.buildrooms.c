@@ -173,7 +173,7 @@ int isSameRoom(struct Room *a, struct Room *b)
  * *********************************************************************/
 void createRoomFiles(struct Graph *graph){
     assert(graph != NULL);
-
+    int i, result;
     //Get process ID
     int pid = getpid();
     //Create buffer for string cat
@@ -185,11 +185,17 @@ void createRoomFiles(struct Graph *graph){
     strcpy(directoryname, "ellisken.rooms.");
     //Concat name and pid
     sprintf(buffer,"%s%i", directoryname, pid);
-    
     //Create new readable directory
-    mkdir(buffer, 0755);
-    //For each room in the graph, create a new file
+    //and assert success
+    result = mkdir(buffer, 0755);
+    assert(result == 0);
+    //For each room in the graph, create a file name and file handle
+    for(i=0; i < ROOM_CT; i++){
+    
         //Print that room's details in the file
+    
+    
+    }
     int i, j;
     for(i=0; i < ROOM_CT; i++){
         printf("Room %i name: %s\n", i+1, graph->room_set[i]->name);
