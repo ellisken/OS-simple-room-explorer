@@ -34,29 +34,29 @@ struct GameState{
 ************************ FUNCTION DEFINITIONS **************************
 ***********************************************************************/
 /*********************************************************************
- * ** Function: initGraph()
- * ** Description: Initializes a Graph struct with room_ct rooms.
- * ** Parameters: int room_ct, signifying the number of rooms to
- *      create.
- * ** Pre-Conditions: There must exist a ptr to Graph to receive the
+ * ** Function: initGameState()
+ * ** Description: Initializes a gamestate struct
+ * ** Parameters: None
+ * ** Pre-Conditions: There must exist a ptr to GameState to receive the
  *      function's output
- * ** Post-Conditions: Returns a pointer to an initialized Graph
+ * ** Post-Conditions: Returns a pointer to an initialized GameState
  * *********************************************************************/
-struct Graph* initGraph(int room_ct){
+struct GameState* initGameState(){
     int i, j;
     //Reserve memory for the graph
-    struct Graph *graph=malloc(sizeof(struct Graph));
+    struct GameState *gamestate=malloc(sizeof(struct GameState));
     //For each room in room_ct
-    for(i=0; i < room_ct; i++){
-        graph->room_set[i] = malloc(sizeof(struct Room)); //Add new blank room to room_set
-        graph->room_set[i]->name = NULL;
-        graph->room_set[i]->type = NULL;
-        graph->room_set[i]->connex_ct = 0;
-        //Init connection list to all NULL pointers 
-        for(j=0; j < MAX_CONNECTIONS; j++){
-            graph->room_set[i]->connex_list[j] = NULL;
-        }
+    //Init room list to all NULL pointers 
+    for(j=0; j < ROOM_CT; j++){
+        gamestate->rooms[j] = NULL;
     }
+    //Do the same for current_connects
+    for(i=0; i < MAX_CONNECTIONS; i++){
+        gamestate->current_connects[i] = NULL;
+    }
+    //Set total_steps and current room connection counts to zero
+    gamestate->total_steps = 0;
+    gamestate->cur_room_cxct = 0;
     //Return Graph
     return graph;
 }
