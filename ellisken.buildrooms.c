@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <fcntl.h>
 #include <assert.h>
 
 #define ROOM_CT 7
@@ -173,7 +174,7 @@ int isSameRoom(struct Room *a, struct Room *b)
  * *********************************************************************/
 void createRoomFiles(struct Graph *graph){
     assert(graph != NULL);
-    int i, result;
+    int i, j, result;
     //Get process ID
     int pid = getpid();
     //Create buffer for string cat
@@ -189,21 +190,24 @@ void createRoomFiles(struct Graph *graph){
     //and assert success
     result = mkdir(buffer, 0755);
     assert(result == 0);
-    //For each room in the graph, create a file name and file handle
+    //For each room in the graph, create a file name "filen" and file handle
     for(i=0; i < ROOM_CT; i++){
-    
-        //Print that room's details in the file
-    
-    
-    }
-    int i, j;
-    for(i=0; i < ROOM_CT; i++){
-        printf("Room %i name: %s\n", i+1, graph->room_set[i]->name);
-        printf("\tConnections: %i\n", graph->room_set[i]->connex_ct);
+        FILE *file_descriptor;
+        char file[6];
+        memset(file, '\0', 6);
+        char file_frag[5];
+        memset(file, '\0', 5);
+        strcpy(file_frag, "file");
+        sprintf(file, "%s%i", file_frag, i);
+        printf("File name created, now printing to file\n");
+        //Print that room's details in the read/write file
+        file_descriptor = fopen(file, "wr");
+        fprintf(file_descriptor, "ROOM NAME: %s\n", graph->room_set[i]->name);
         for(j=0; j < graph->room_set[i]->connex_ct; j++){
-            printf("\t Connection %i: %s\n", j+1, graph->room_set[i]->connex_list[j]->name);
+            fprintf(file_descriptor, "CONNECTION %i: %s\n", j+1, graph->room_set[i]->connex_list[j]->name);
         }
-        printf("\tType: %s\n\n", graph->room_set[i]->type);
+        fprintf(file_descriptor, "ROOM TYPE: %s\n", graph->room_set[i]->type);
+        fclose(file_descriptor);
     }
     return;
 }
