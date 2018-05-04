@@ -10,6 +10,9 @@
  * *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <time.h>
 #include <dirent.h>
 #include <string.h>
@@ -82,18 +85,50 @@ void freeGameState(struct GameState* gamestate)
 
 
 /*********************************************************************
- * ** Function: findRightDir()
+ * ** Function: findNewestDir()
  * ** Description: Opens the most recently created ellisken.rooms.<ID>
  *      directory created
- * ** Parameters: 
+ * ** Parameters: Takes a pointer to a string of lenth 256 for storing
+ *      the name of the newest directory in
  * ** Pre-Conditions: There must exist a ptr to dirent to receive the
  *      function's output
- * ** Post-Conditions: Returns a pointer to the correct directory
+ * ** Post-Conditions: parameter passed will contain name of newest
+ *      directory in the current directory
+ * ** NOTE: Based on example provided on page "2.4 Manipulating Directories"
+ * **   provided by Benjamin Brewster
  * *********************************************************************/
-struct dirent* findRightDir(){
+void findNewestDir(char *newestDir){
+    int newestDirTime = -1; //Modified timestamp of nest subdir examined
+    char targetDirPrefix[32] = "ellisken.rooms."; //Prefix we're looking for
+    memset(newestDir, '\0', sizeof(newestDir)); //Clear newestDir memory
 
+    DIR *dirToCheck; //Holds starting directory
+    struct dirent *fileInDir; //Holds current subdir of starting dir
+    struct stat dirAttributes; //Holds info about the current subdir
 
-
+    dirToCheck = open("."); //Open current directory
+    
+    //Check success    
+    if(dirToCheck > 0){
+        //Check each entry in current directory
+        while((fileInDir = readdir(dirToCheck)) != NULL){
+            //If entry has the target prefix
+            if(strstr(fileInDir->d_name, targetDirPrefix) != NULL){
+                //Get that subdir's attributes
+                stat(fileInDir->d_name, &dirAttributes);
+                //If the time is larger than newestDirTime
+                if((int)dirAttributes.st_mtime > newestDirTime){
+                    //Reset newestDirTime to current subdir's time
+                    newestDirTime = (int)dirAttributes.st_mtime;
+                    //Store current subdir name in newestDirName
+                    memset(newestDir, '\0', sizeof(newestDir));
+                    strcpy(newestDir, fileInDir->d_name);
+                }
+            }
+        }
+    }
+    //Close the opened current directory
+    closedir(dirToCheck);
     return;
 }  
 
@@ -107,6 +142,7 @@ int main(){
     assert(gamestate != NULL);
    
     //Verify in correct directory
+
     //Find START_ROOM
     //Load room connections to gamestate
     //At end?
