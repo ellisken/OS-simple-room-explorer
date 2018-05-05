@@ -163,7 +163,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     //last line's inclusion above
     gamestate->cur_room_cxct--;
     //Return to beginning of file
-    fseek(current_fd, 0, SEEK_SET);
+    fseek(room, 0, SEEK_SET);
     return;
 }
 
@@ -220,12 +220,36 @@ FILE* findRoomByType(char *dirname, char *room_type){
 
 /*********************************************************************
  * ** Function: displayRoomInfo()
- * ** Description: Displays the room's name
- * ** Parameters: Directory name, pointer to gamestate
- * ** Pre-Conditions: Directory name and gamestate must be defined
- * ** Post-Conditions: gamestate->rooms[] will contain pointers to
- *      the names of each room in the game play.
+ * ** Description: Displays the room's name and room connections
+ *      in a comma-separated list
+ * ** Parameters: Pointer to gamestate
+ * ** Pre-Conditions: gamestate must be defined
+ * ** Post-Conditions: The current room's info will be displayed to the
+ *      console
  * *********************************************************************/
+void displayRoomInfo(struct GameState *gamestate){
+    int i;
+    char *name = NULL; //Pointer to store name strings for strtok
+    //Display current location
+    printf("CURRENT LOCATION: %s", gamestate->cur_room);
+    //Display connection names
+    printf("POSSIBLE CONNECTIONS:");
+    //For each '\n' separated name in gamestate->current_connects
+    //Print name to same line
+    name = strtok(gamestate->current_connects, "\n");
+    for(i=1; i < gamestate->cur_room_cxct; i++){
+        //name = gamestate->current_connects;
+        //If last name in list, format differently
+        if(i == (gamestate->cur_room_cxct - 1))
+            printf(" %s", name);
+        else printf(" %s,", name);
+        name = strtok(NULL, "\n");
+    }
+    
+    printf("\n");
+
+    return;
+}
 
 
 /***********************************************************************
@@ -277,6 +301,7 @@ int main(){
         free(roomDirName);
     }
     //Display room name and comma separated list of connections
+    displayRoomInfo(gamestate);
     //Prompt WHERE TO?
     //Check that name entered exists
         //If not, displayerror and reprompt
