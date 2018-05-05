@@ -151,7 +151,8 @@ FILE* findRoomByType(char *dirname, char *room_type){
     char targetPrefix[5] = "file";//Prefix of files being searched
     char filepath[256]; //For storing complete filepath
 
-    char first_line[256]; //For storing first line's contents
+    char line[256]; //For storing first line's contents
+    char line_copy[256]; //For storing first line's contents
     DIR *dir = opendir(dirname);
     assert(dir > 0);
 
@@ -159,12 +160,19 @@ FILE* findRoomByType(char *dirname, char *room_type){
     while((current_file = readdir(dir)) != NULL){
         if(strstr(current_file->d_name, targetPrefix) != NULL){
             //Save last line
-            while
             memset(filepath, '\0', 256);
             sprintf(filepath, "%s/%s", dirname, current_file->d_name);
             current_fd = fopen(filepath, "r");
             assert(current_fd > 0);
-            fgets(first_line, 256, current_fd);
+            memset(line, '\0', 256);
+            //Read through file until last line copied
+            while(fgets(line, 256, current_fd)){
+                memset(line_copy, '\0', 256);
+                strcpy(line_copy, line);
+            }
+            if(strstr(line_copy, room_type) != NULL)
+                return current_fd;
+            fclose(current_fd);
         }
     }   
         //Return current_fd
