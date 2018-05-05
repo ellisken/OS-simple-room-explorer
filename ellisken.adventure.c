@@ -241,15 +241,34 @@ void displayRoomInfo(struct GameState *gamestate){
         //name = gamestate->current_connects;
         //If last name in list, format differently
         if(i == (gamestate->cur_room_cxct - 1))
-            printf(" %s", name);
+            printf(" %s.", name);
         else printf(" %s,", name);
         name = strtok(NULL, "\n");
     }
-    
     printf("\n");
-
     return;
 }
+
+
+/*********************************************************************
+ * ** Function: getCheckUserInput()
+ * ** Description: Saves user input in a string and verifies that
+ *      the input room exactly matches a room connected to the 
+ *      current room. Returns true if so, else returns false.
+ * ** Parameters: Pointer to malloc'd string
+ * ** Pre-Conditions: The string must be allocated first
+ * ** Post-Conditions: The user input will be "saved" with the pointer
+ * *********************************************************************/
+int getCheckUserInput(char *input, struct GameState *gamestate){
+    //Get input
+    fgets(input, 256, stdin);
+    //printf("Input was: %s\n", input);
+    //Verify name entered is connected to the current room
+    if(strstr(gamestate->current_connects, input) != NULL)
+        return 1;
+    else return 0;
+}
+
 
 
 /***********************************************************************
@@ -258,6 +277,7 @@ void displayRoomInfo(struct GameState *gamestate){
 int main(){
     //Create string for holding subdir name
     char *roomDirName = malloc(sizeof(char) * 256);
+    char *input = malloc(sizeof(char) * 256);
     DIR *roomDir;//pointer to room dir
     char type[20];
     FILE *cur_file = NULL;
@@ -284,9 +304,6 @@ int main(){
 
     //Load current room info into gamestate
     loadRoomInfo(cur_file, gamestate);
-    printf("Current room name: %s\n", gamestate->cur_room);
-    printf("Current room connections: %s\n", gamestate->current_connects);
-    printf("Current room connect_ct: %i\n", gamestate->cur_room_cxct);
 
     //At end?
     if(cur_file == end_file){
@@ -299,12 +316,17 @@ int main(){
         fclose(end_file);
         freeGameState(gamestate);
         free(roomDirName);
+        free(input);
     }
     //Display room name and comma separated list of connections
     displayRoomInfo(gamestate);
-    //Prompt WHERE TO?
+    //Prompt WHERE TO? and save input and verify
+    printf("WHERE TO ? >");
+    //getCheckUserInput(input, gamestate);
     //Check that name entered exists
+    if(getCheckUserInput(input, gamestate) == 0)
         //If not, displayerror and reprompt
-        //Else, go to chosen room and continue play
+        printf("Room not found.\n");
+        //Else, add current room to path and switch rooms
     return 0;
 }
