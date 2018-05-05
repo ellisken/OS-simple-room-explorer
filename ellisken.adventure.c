@@ -139,11 +139,13 @@ void findNewestDir(char *newestDirName){
  * ** Function: findStart()
  * ** Description: Searches all files in the given directory
  *      to find the room of type START_ROOM
- * ** Parameters: Pointer to DIR for directory to search
+ * ** Parameters: Pointer to string holding name of directory to 
+ *      search and pointer to strong holding room type name 
+ *      
  * ** Pre-Conditions: Pointer to DIR must not be NULL
  * ** Post-Conditions: Returns a pointer to the START_ROOM file
  * *********************************************************************/
-FILE* findStart(char *dirname){
+FILE* findRoomByType(char *dirname, char *room_type){
     struct dirent *current_file;
     FILE *current_fd = NULL;
     char targetPrefix[5] = "file";//Prefix of files being searched
@@ -156,16 +158,13 @@ FILE* findStart(char *dirname){
     //For each file in the directory, get first line
     while((current_file = readdir(dir)) != NULL){
         if(strstr(current_file->d_name, targetPrefix) != NULL){
-            //Get first line
-            printf("file name is: %s\n", current_file->d_name);
+            //Save last line
+            while
             memset(filepath, '\0', 256);
             sprintf(filepath, "%s/%s", dirname, current_file->d_name);
             current_fd = fopen(filepath, "r");
-            printf("file descriptor: %d\n", current_fd);
             assert(current_fd > 0);
-            printf("File OPENED\n");
             fgets(first_line, 256, current_fd);
-            printf("The first line is: %s\n", first_line);
         }
     }   
         //Return current_fd
@@ -181,6 +180,7 @@ int main(){
     //Create string for holding subdir name
     char *roomDirName = malloc(sizeof(char) * 256);
     DIR *roomDir;//pointer to room dir
+    char type[20];
 
     //Initialize GameState
     struct GameState *gamestate = initGameState();
@@ -192,7 +192,9 @@ int main(){
     //assert(roomDir > 0);
 
     //Find START_ROOM
-    findStart(roomDirName);
+    memset(type, '\0', sizeof(type));
+    strcpy(type, "START_ROOM");
+    findRoomByType(roomDirName, type);
     //Load room connections to gamestate
     //At end?
         //Display end message
