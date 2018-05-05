@@ -50,8 +50,7 @@ struct GameState* initGameState(){
     //Reserve memory for the graph
     struct GameState *gamestate=malloc(sizeof(struct GameState));
     gamestate->current_connects = malloc(sizeof(char) * (9 * MAX_CONNECTIONS));
-    //Set current room name to NULL
-    gamestate->cur_room = NULL;
+    gamestate->cur_room = malloc(sizeof(char) * 9);
     //Set total_steps and current room connection counts to zero
     gamestate->total_steps = 0;
     gamestate->cur_room_cxct = 0;
@@ -70,6 +69,7 @@ struct GameState* initGameState(){
 void freeGameState(struct GameState* gamestate)
 {
     free(gamestate->current_connects);
+    free(gamestate->cur_room);
     free(gamestate);
     return;
 }
@@ -140,9 +140,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     fgets(line, 256, room);
     memset(name, '\0', 256);
     //Room name always starts at index 11
-    printf("Right before name copy. Line is %s\n", line);
     strncpy(name, line + 11, strlen(line) - 11);
-    printf("Right after name copy\n");
     strcat(gamestate->cur_room, name);
    
     //For each connecting room, add that connection's name
@@ -164,6 +162,8 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     //Decrement current connection count to offset for
     //last line's inclusion above
     gamestate->cur_room_cxct--;
+    //Return to beginning of file
+    fseek(current_fd, 0, SEEK_SET);
     return;
 }
 
@@ -245,8 +245,6 @@ int main(){
    
     //Find correct directory and open
     findNewestDir(roomDirName);
-
-    //Load all room names into gamestate
 
     //Find START_ROOM and END_ROOM
     memset(type, '\0', sizeof(type));
