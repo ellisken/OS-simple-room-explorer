@@ -140,7 +140,9 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     fgets(line, 256, room);
     memset(name, '\0', 256);
     //Room name always starts at index 11
+    printf("Right before name copy. Line is %s\n", line);
     strncpy(name, line + 11, strlen(line) - 11);
+    printf("Right after name copy\n");
     strcat(gamestate->cur_room, name);
    
     //For each connecting room, add that connection's name
@@ -153,7 +155,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
         //Copy name to current_connects
         //Note that this will also append junk from the
         //last line containing ROOM TYPE
-        strncpy(name, line + 14, 256 - 14);
+        strncpy(name, line + 14, strlen(line) - 14);
         strcat(gamestate->current_connects, name);
         //Increment current connection count
         gamestate->cur_room_cxct++;
@@ -167,7 +169,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
 
 
 /*********************************************************************
- * ** Function: findStart()
+ * ** Function: findRoomByType()
  * ** Description: Searches all files in the given directory
  *      to find the room of type START_ROOM
  * ** Parameters: Pointer to string holding name of directory to 
@@ -203,8 +205,11 @@ FILE* findRoomByType(char *dirname, char *room_type){
                 strcpy(line_copy, line);
             }
             //If last line contains room_type, return file descriptor
-            if(strstr(line_copy, room_type) != NULL)
+            if(strstr(line_copy, room_type) != NULL){
+                //Return file pointer to beginning of file
+                fseek(current_fd, 0, SEEK_SET);
                 return current_fd;//Return without closing the file
+            }
             //If not found, close file
             fclose(current_fd);
         }
