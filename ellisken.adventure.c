@@ -97,19 +97,21 @@ void freeGameState(struct GameState* gamestate)
  * ** NOTE: Based on example provided on page "2.4 Manipulating Directories"
  * **   provided by Benjamin Brewster
  * *********************************************************************/
-void findNewestDir(char *newestDir){
+void findNewestDir(char *newestDirName){
     int newestDirTime = -1; //Modified timestamp of nest subdir examined
     char targetDirPrefix[32] = "ellisken.rooms."; //Prefix we're looking for
-    memset(newestDir, '\0', sizeof(newestDir)); //Clear newestDir memory
+    //char newestDir[256];
+    //memset(newestDir, '\0', sizeof(newestDir)); //Clear newestDir memory
 
     DIR *dirToCheck; //Holds starting directory
     struct dirent *fileInDir; //Holds current subdir of starting dir
     struct stat dirAttributes; //Holds info about the current subdir
 
-    dirToCheck = open("."); //Open current directory
+    dirToCheck = opendir("."); //Open current directory
     
     //Check success    
     if(dirToCheck > 0){
+    //assert(dirToCheck != NULL);
         //Check each entry in current directory
         while((fileInDir = readdir(dirToCheck)) != NULL){
             //If entry has the target prefix
@@ -121,8 +123,8 @@ void findNewestDir(char *newestDir){
                     //Reset newestDirTime to current subdir's time
                     newestDirTime = (int)dirAttributes.st_mtime;
                     //Store current subdir name in newestDirName
-                    memset(newestDir, '\0', sizeof(newestDir));
-                    strcpy(newestDir, fileInDir->d_name);
+                    //memset(newestDir, '\0', sizeof(newestDir));
+                    strcpy(newestDirName, fileInDir->d_name);
                 }
             }
         }
@@ -137,11 +139,21 @@ void findNewestDir(char *newestDir){
 ******************************** MAIN **********************************
 ***********************************************************************/
 int main(){
+    //Create string for holding subdir name
+    char *roomDirName = malloc(sizeof(char) * 256);
+    DIR *roomDir;//Create pointer to room dir
+
     //Initialize GameState
     struct GameState *gamestate = initGameState();
     assert(gamestate != NULL);
    
-    //Verify in correct directory
+    //Find correct directory and open
+    printf("Finding newest subdirectory...\n");
+    findNewestDir(roomDirName);
+    printf("Found newest directory's name: %s\n", roomDirName);
+    //roomDir = opendir(roomDirName);
+    //assert(roomDir > 0);
+
 
     //Find START_ROOM
     //Load room connections to gamestate
@@ -157,5 +169,6 @@ int main(){
     //Check that name entered exists
         //If not, displayerror and reprompt
         //Else, go to chosen room and continue play
+    free(roomDirName);
     return 0;
 }
