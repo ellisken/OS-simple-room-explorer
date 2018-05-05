@@ -135,40 +135,78 @@ void findNewestDir(char *newestDirName){
 }  
 
 
+/*********************************************************************
+ * ** Function: findStart()
+ * ** Description: Searches all files in the given directory
+ *      to find the room of type START_ROOM
+ * ** Parameters: Pointer to DIR for directory to search
+ * ** Pre-Conditions: Pointer to DIR must not be NULL
+ * ** Post-Conditions: Returns a pointer to the START_ROOM file
+ * *********************************************************************/
+FILE* findStart(char *dirname){
+    struct dirent *current_file;
+    FILE *current_fd = NULL;
+    char targetPrefix[5] = "file";//Prefix of files being searched
+    char filepath[256]; //For storing complete filepath
+
+    char first_line[256]; //For storing first line's contents
+    DIR *dir = opendir(dirname);
+    assert(dir > 0);
+
+    //For each file in the directory, get first line
+    while((current_file = readdir(dir)) != NULL){
+        if(strstr(current_file->d_name, targetPrefix) != NULL){
+            //Get first line
+            printf("file name is: %s\n", current_file->d_name);
+            memset(filepath, '\0', 256);
+            sprintf(filepath, "%s/%s", dirname, current_file->d_name);
+            current_fd = fopen(filepath, "r");
+            printf("file descriptor: %d\n", current_fd);
+            assert(current_fd > 0);
+            printf("File OPENED\n");
+            fgets(first_line, 256, current_fd);
+            printf("The first line is: %s\n", first_line);
+        }
+    }   
+        //Return current_fd
+    //Return
+}
+
+
+
 /***********************************************************************
 ******************************** MAIN **********************************
 ***********************************************************************/
 int main(){
     //Create string for holding subdir name
     char *roomDirName = malloc(sizeof(char) * 256);
-    DIR *roomDir;//Create pointer to room dir
+    DIR *roomDir;//pointer to room dir
 
     //Initialize GameState
     struct GameState *gamestate = initGameState();
     assert(gamestate != NULL);
    
     //Find correct directory and open
-    printf("Finding newest subdirectory...\n");
     findNewestDir(roomDirName);
-    printf("Found newest directory's name: %s\n", roomDirName);
     //roomDir = opendir(roomDirName);
     //assert(roomDir > 0);
 
-
     //Find START_ROOM
+    findStart(roomDirName);
     //Load room connections to gamestate
     //At end?
         //Display end message
         //Print total steps
         //Print path
-        //Delete graph
+        //Clean up
+        //closedir(roomDir);
         freeGameState(gamestate);
+        free(roomDirName);
     //Display room name
     //Display comma separated list of connections
     //Prompt WHERE TO?
     //Check that name entered exists
         //If not, displayerror and reprompt
         //Else, go to chosen room and continue play
-    free(roomDirName);
     return 0;
 }
