@@ -25,7 +25,6 @@
 ************************** DATA STRUCTURES *****************************
 ***********************************************************************/
 struct GameState{
-    char *rooms;//Room names in game
     int total_steps;//Number of total steps taken
     char *cur_room;//For holding name of current room
     char *current_connects;//List of current room connections;
@@ -50,7 +49,6 @@ struct GameState* initGameState(){
     int i, j;
     //Reserve memory for the graph
     struct GameState *gamestate=malloc(sizeof(struct GameState));
-    gamestate->rooms = malloc(sizeof(char) * (9 * ROOM_CT));
     gamestate->current_connects = malloc(sizeof(char) * (9 * MAX_CONNECTIONS));
     //Set current room name to NULL
     gamestate->cur_room = NULL;
@@ -71,7 +69,6 @@ struct GameState* initGameState(){
  * *********************************************************************/
 void freeGameState(struct GameState* gamestate)
 {
-    free(gamestate->rooms);
     free(gamestate->current_connects);
     free(gamestate);
     return;
@@ -94,8 +91,6 @@ void freeGameState(struct GameState* gamestate)
 void findNewestDir(char *newestDirName){
     int newestDirTime = -1; //Modified timestamp of nest subdir examined
     char targetDirPrefix[32] = "ellisken.rooms."; //Prefix we're looking for
-    //char newestDir[256];
-    //memset(newestDir, '\0', sizeof(newestDir)); //Clear newestDir memory
 
     DIR *dirToCheck; //Holds starting directory
     struct dirent *fileInDir; //Holds current subdir of starting dir
@@ -105,7 +100,6 @@ void findNewestDir(char *newestDirName){
     
     //Check success    
     if(dirToCheck > 0){
-    //assert(dirToCheck != NULL);
         //Check each entry in current directory
         while((fileInDir = readdir(dirToCheck)) != NULL){
             //If entry has the target prefix
@@ -117,7 +111,6 @@ void findNewestDir(char *newestDirName){
                     //Reset newestDirTime to current subdir's time
                     newestDirTime = (int)dirAttributes.st_mtime;
                     //Store current subdir name in newestDirName
-                    //memset(newestDir, '\0', sizeof(newestDir));
                     strcpy(newestDirName, fileInDir->d_name);
                 }
             }
@@ -130,46 +123,46 @@ void findNewestDir(char *newestDirName){
 
 
 /*********************************************************************
- * ** Function: loadRoomNames()
- * ** Description: Stores all names of rooms in game play directory
- * ** Parameters: Directory name, pointer to gamestate
- * ** Pre-Conditions: Directory name and gamestate must be defined
- * ** Post-Conditions: gamestate->rooms[] will contain pointers to
- *      the names of each room in the game play.
+ * ** Function: loadRoomInfo()
+ * ** Description: Stores all names of connections to current room
+ * ** Parameters: directory name, file descriptor for current room,
+ *      pointer to gamestate
+ * ** Pre-Conditions: directory, file descriptor and gamestate must be defined
+ * ** Post-Conditions: gamestate->cuurent_connects[] will contain names
+ *      of all connected rooms to current room
  * *********************************************************************/
-FILE* loadRoomNames(char *dirname, struct GameState *gamestate){
-    struct dirent *current_file;
-    FILE *current_fd = NULL;
-    char targetPrefix[5] = "file";//Prefix of files being searched
-    char filepath[256]; //For storing complete filepath
-
-    char line[256]; //For storing first line's contents
+void loadRoomInfo(FILE *room, struct GameState *gamestate){
+    char line[256]; //For storing line's contents
     char name[256]; //For storing room name
-    DIR *dir = opendir(dirname);
-    assert(dir > 0);
 
-    //For each file in the directory
-    while((current_file = readdir(dir)) != NULL){
-        //Make sure file has "file" in name
-        if(strstr(current_file->d_name, targetPrefix) != NULL){
-            //Create filepath
-            memset(filepath, '\0', 256);
-            sprintf(filepath, "%s/%s", dirname, current_file->d_name);
-            current_fd = fopen(filepath, "r");
-            assert(current_fd > 0);
-            memset(line, '\0', 256);
-            //Get the first line and append name to gamestate->rooms
-            fgets(line, 256, current_fd);
-            memset(name, '\0', 256);
-            //Room name always starts at index 11
-            strncpy(name, line + 11, strlen(line) - 11);
-            printf("Room name substring copied is %s\n", name);
-            strcat(gamestate->rooms, "\0");
-            strcat(gamestate->rooms, name);
-            fclose(current_fd);
-        }
-    }   
-    return NULL;
+    //Get room name from first line and store in gamestate
+    memset(line, '\0', 256);
+    fgets(line, 256, room);
+    memset(name, '\0', 256);
+    //Room name always starts at index 11
+    strncpy(name, line + 11, strlen(line) - 11);
+    strcat(gamestate->cur_room, name);
+   
+    //For each connecting room, add that connection's name
+    //to gamestate->cur_room_connects
+    //Get the first line and append name to gamestate->rooms
+    memset(line, '\0', 256);
+    while(fgets(line, 256, room)){
+        memset(name, '\0', 256);
+        //Room connection names always start at index 14
+        //Copy name to current_connects
+        //Note that this will also append junk from the
+        //last line containing ROOM TYPE
+        strncpy(name, line + 14, 256 - 14);
+        strcat(gamestate->current_connects, name);
+        //Increment current connection count
+        gamestate->cur_room_cxct++;
+        memset(line, '\0', 256);
+    }
+    //Decrement current connection count to offset for
+    //last line's inclusion above
+    gamestate->cur_room_cxct--;
+    return;
 }
 
 
@@ -211,14 +204,23 @@ FILE* findRoomByType(char *dirname, char *room_type){
             }
             //If last line contains room_type, return file descriptor
             if(strstr(line_copy, room_type) != NULL)
-                return current_fd;
-            //Close file
+                return current_fd;//Return without closing the file
+            //If not found, close file
             fclose(current_fd);
         }
     }   
     return NULL;
 }
 
+
+/*********************************************************************
+ * ** Function: displayRoomInfo()
+ * ** Description: Displays the room's name
+ * ** Parameters: Directory name, pointer to gamestate
+ * ** Pre-Conditions: Directory name and gamestate must be defined
+ * ** Post-Conditions: gamestate->rooms[] will contain pointers to
+ *      the names of each room in the game play.
+ * *********************************************************************/
 
 
 /***********************************************************************
@@ -230,6 +232,7 @@ int main(){
     DIR *roomDir;//pointer to room dir
     char type[20];
     FILE *cur_file = NULL;
+    FILE *end_file = NULL; //Stores pointer to descriptor for file containing END_ROOM
 
     //Initialize GameState
     struct GameState *gamestate = initGameState();
@@ -240,23 +243,37 @@ int main(){
 
     //Load all room names into gamestate
 
-    //Find START_ROOM
+    //Find START_ROOM and END_ROOM
     memset(type, '\0', sizeof(type));
     strcpy(type, "START_ROOM");
+    //Point cur_file to mem location returned
     cur_file = findRoomByType(roomDirName, type);
     assert(cur_file != NULL);
-    //Load room connections to gamestate
-    loadRoomNames(roomDirName, gamestate);
+    memset(type, '\0', sizeof(type));
+    strcpy(type, "END_ROOM");
+    //Point end_file to endlocation returned
+    end_file = findRoomByType(roomDirName, type);
+    assert(end_file != NULL);
+
+    //Load current room info into gamestate
+    loadRoomInfo(cur_file, gamestate);
+    printf("Current room name: %s\n", gamestate->cur_room);
+    printf("Current room connections: %s\n", gamestate->current_connects);
+    printf("Current room connect_ct: %i\n", gamestate->cur_room_cxct);
+
     //At end?
+    if(cur_file == end_file){
         //Display end message
+        printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
         //Print total steps
         //Print path
         //Clean up
-        //closedir(roomDir);
+        fclose(cur_file);
+        fclose(end_file);
         freeGameState(gamestate);
         free(roomDirName);
-    //Display room name
-    //Display comma separated list of connections
+    }
+    //Display room name and comma separated list of connections
     //Prompt WHERE TO?
     //Check that name entered exists
         //If not, displayerror and reprompt
