@@ -161,8 +161,11 @@ FILE* loadRoomNames(char *dirname, struct GameState *gamestate){
             //Get the first line and append name to gamestate->rooms
             fgets(line, 256, current_fd);
             memset(name, '\0', 256);
+            //Room name always starts at index 11
             strncpy(name, line + 11, strlen(line) - 11);
-
+            printf("Room name substring copied is %s\n", name);
+            strcat(gamestate->rooms, "\0");
+            strcat(gamestate->rooms, name);
             fclose(current_fd);
         }
     }   
@@ -243,6 +246,7 @@ int main(){
     cur_file = findRoomByType(roomDirName, type);
     assert(cur_file != NULL);
     //Load room connections to gamestate
+    loadRoomNames(roomDirName, gamestate);
     //At end?
         //Display end message
         //Print total steps
