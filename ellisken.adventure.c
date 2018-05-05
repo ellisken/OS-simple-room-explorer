@@ -25,10 +25,10 @@
 ************************** DATA STRUCTURES *****************************
 ***********************************************************************/
 struct GameState{
-    char *rooms[ROOM_CT];//Room names in game
+    char *rooms;//Room names in game
     int total_steps;//Number of total steps taken
     char *cur_room;//For holding name of current room
-    char *current_connects[MAX_CONNECTIONS];//List of current room connections;
+    char *current_connects;//List of current room connections;
     int cur_room_cxct;//Connection count for current room
 };
 
@@ -50,15 +50,8 @@ struct GameState* initGameState(){
     int i, j;
     //Reserve memory for the graph
     struct GameState *gamestate=malloc(sizeof(struct GameState));
-    //For each room in room_ct
-    //Init room list to all NULL pointers 
-    for(j=0; j < ROOM_CT; j++){
-        gamestate->rooms[j] = NULL;
-    }
-    //Do the same for current_connects
-    for(i=0; i < MAX_CONNECTIONS; i++){
-        gamestate->current_connects[i] = NULL;
-    }
+    gamestate->rooms = malloc(sizeof(char) * (9 * ROOM_CT));
+    gamestate->current_connects = malloc(sizeof(char) * (9 * MAX_CONNECTIONS));
     //Set current room name to NULL
     gamestate->cur_room = NULL;
     //Set total_steps and current room connection counts to zero
@@ -78,7 +71,8 @@ struct GameState* initGameState(){
  * *********************************************************************/
 void freeGameState(struct GameState* gamestate)
 {
-    //Free the gamestate itself
+    free(gamestate->rooms);
+    free(gamestate->current_connects);
     free(gamestate);
     return;
 }
@@ -136,6 +130,47 @@ void findNewestDir(char *newestDirName){
 
 
 /*********************************************************************
+ * ** Function: loadRoomNames()
+ * ** Description: Stores all names of rooms in game play directory
+ * ** Parameters: Directory name, pointer to gamestate
+ * ** Pre-Conditions: Directory name and gamestate must be defined
+ * ** Post-Conditions: gamestate->rooms[] will contain pointers to
+ *      the names of each room in the game play.
+ * *********************************************************************/
+FILE* loadRoomNames(char *dirname, struct GameState *gamestate){
+    struct dirent *current_file;
+    FILE *current_fd = NULL;
+    char targetPrefix[5] = "file";//Prefix of files being searched
+    char filepath[256]; //For storing complete filepath
+
+    char line[256]; //For storing first line's contents
+    char name[256]; //For storing room name
+    DIR *dir = opendir(dirname);
+    assert(dir > 0);
+
+    //For each file in the directory
+    while((current_file = readdir(dir)) != NULL){
+        //Make sure file has "file" in name
+        if(strstr(current_file->d_name, targetPrefix) != NULL){
+            //Create filepath
+            memset(filepath, '\0', 256);
+            sprintf(filepath, "%s/%s", dirname, current_file->d_name);
+            current_fd = fopen(filepath, "r");
+            assert(current_fd > 0);
+            memset(line, '\0', 256);
+            //Get the first line and append name to gamestate->rooms
+            fgets(line, 256, current_fd);
+            memset(name, '\0', 256);
+            strncpy(name, line + 11, strlen(line) - 11);
+
+            fclose(current_fd);
+        }
+    }   
+    return NULL;
+}
+
+
+/*********************************************************************
  * ** Function: findStart()
  * ** Description: Searches all files in the given directory
  *      to find the room of type START_ROOM
@@ -156,10 +191,11 @@ FILE* findRoomByType(char *dirname, char *room_type){
     DIR *dir = opendir(dirname);
     assert(dir > 0);
 
-    //For each file in the directory, get first line
+    //For each file in the directory
     while((current_file = readdir(dir)) != NULL){
+        //If file name contains "file"
         if(strstr(current_file->d_name, targetPrefix) != NULL){
-            //Save last line
+            //Create filepath
             memset(filepath, '\0', 256);
             sprintf(filepath, "%s/%s", dirname, current_file->d_name);
             current_fd = fopen(filepath, "r");
@@ -170,13 +206,14 @@ FILE* findRoomByType(char *dirname, char *room_type){
                 memset(line_copy, '\0', 256);
                 strcpy(line_copy, line);
             }
+            //If last line contains room_type, return file descriptor
             if(strstr(line_copy, room_type) != NULL)
                 return current_fd;
+            //Close file
             fclose(current_fd);
         }
     }   
-        //Return current_fd
-    //Return
+    return NULL;
 }
 
 
@@ -189,6 +226,7 @@ int main(){
     char *roomDirName = malloc(sizeof(char) * 256);
     DIR *roomDir;//pointer to room dir
     char type[20];
+    FILE *cur_file = NULL;
 
     //Initialize GameState
     struct GameState *gamestate = initGameState();
@@ -196,13 +234,14 @@ int main(){
    
     //Find correct directory and open
     findNewestDir(roomDirName);
-    //roomDir = opendir(roomDirName);
-    //assert(roomDir > 0);
+
+    //Load all room names into gamestate
 
     //Find START_ROOM
     memset(type, '\0', sizeof(type));
     strcpy(type, "START_ROOM");
-    findRoomByType(roomDirName, type);
+    cur_file = findRoomByType(roomDirName, type);
+    assert(cur_file != NULL);
     //Load room connections to gamestate
     //At end?
         //Display end message
