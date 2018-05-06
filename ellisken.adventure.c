@@ -347,6 +347,7 @@ void *getTime(){
     //Format current time/date
     strftime(cur_time, sizeof(cur_time), "%l:%M%P, %A, %B %e, %Y",  date_time);
     fprintf(new_file, "%s", cur_time);
+    fclose(new_file);//Close file
 
     //Unlock mutex for this thread
     pthread_mutex_unlock(&mutex);
@@ -365,6 +366,11 @@ void *getTime(){
  * ** Post-Conditions: The user input will be "saved" with the pointer
  * *********************************************************************/
 int getCheckUserInput(char *input, struct GameState *gamestate){
+    FILE *file; //For retrieving date/time from currentTime.txt
+    //Create string for storing date/time from currentTime.txt
+    char current_time[256];
+    memset(current_time, '\0', 256);
+
     //Prompt user
     printf("WHERE TO ? >");
     //Get input
@@ -379,6 +385,11 @@ int getCheckUserInput(char *input, struct GameState *gamestate){
         pthread_mutex_lock(&mutex);//Relock mutex for main thread
         pthread_create(&(threads[0]), NULL, &getTime, NULL);//Start new getTime
         //Read current time from created textfile and display to console
+        file = fopen("currentTime.txt", "r");
+        fgets(current_time, 256, file);
+        printf("%s\n\n", current_time);
+        //Return 2, indicating time called
+        return 2;
     }
 
     //Verify name entered is connected to the current room
@@ -522,7 +533,7 @@ int main(){
         displayRoomInfo(gamestate);
         result = 0; //Set (or re-set) result to false for input loop
         //Check that name entered exists
-        while(result == 0){
+        while(result != 1){
             //If not, displayerror and reprompt
             result = getCheckUserInput(input, gamestate);
             if(result == 0)
