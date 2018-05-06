@@ -321,6 +321,7 @@ int getCheckUserInput(char *input, struct GameState *gamestate){
     fgets(input, 256, stdin);
     //Remove trailing newline in input
     strtok(input, "\n");
+    printf("\n");
     //Verify name entered is connected to the current room
     if(strstr(gamestate->current_connects, input) != NULL)
         return 1;
@@ -331,8 +332,8 @@ int getCheckUserInput(char *input, struct GameState *gamestate){
 /*********************************************************************
  * ** Function: switchRooms()
  * ** Description: Finds room file by name (from user input)
- *      and resets cur_file to point to next room. Also adds
- *      old room to path in gamestate and updates number of steps.
+ *      and resets cur_file to point to next room. Also 
+ *      updates number of steps.
  * ** Parameters: Directory name, new room name, gamestate
  * ** Pre-Conditions: dirname, new_room, and gamestate must be
  *      defined
@@ -350,9 +351,6 @@ FILE* switchRooms(char *dirname, char *new_room, struct GameState *gamestate){
     DIR *dir = opendir(dirname);
     assert(dir > 0);
 
-    //Add new room to path
-    strcat(gamestate->path, new_room);
-    strcat(gamestate->path, "-");//Add delimiter
 
     //For each file in the directory
     while((specified_dir = readdir(dir)) != NULL){
@@ -406,11 +404,10 @@ void endGame(struct GameState *gamestate){
     printf("YOU TOOK %i STEPS. YOUR PATH TO VICTORY WAS:\n", gamestate->total_steps);
     //Print path
     name = strtok(gamestate->path, "-");
-    for(i=1; i < gamestate->total_steps; i++){
+    for(i=0; i < gamestate->total_steps; i++){
         printf("%s\n", name);
         name = strtok(NULL, "-");
     }
-    printf("%s", gamestate->path);
     return;
 }
 
@@ -466,7 +463,7 @@ int main(){
             //If not, displayerror and reprompt
             result = getCheckUserInput(input, gamestate);
             if(result == 0)
-                printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
+                printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
         }
         
         //Else, close current room file and switch rooms
@@ -474,6 +471,10 @@ int main(){
         cur_file = switchRooms(roomDirName, input, gamestate);
         //Load new room info into gamestate
         loadRoomInfo(cur_file, gamestate);
+
+        //Add new room to path
+        strcat(gamestate->path, gamestate->cur_room);
+        strcat(gamestate->path, "-");//Add delimiter
     }
     return 0;
 }
