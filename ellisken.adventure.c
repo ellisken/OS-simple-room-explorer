@@ -52,6 +52,8 @@ struct GameState* initGameState(){
     int i, j;
     //Reserve memory for the graph
     struct GameState *gamestate=malloc(sizeof(struct GameState));
+    gamestate->cur_room = NULL;
+    gamestate->current_connects = NULL;
     //Set total_steps and current room connection counts to zero
     gamestate->total_steps = 0;
     gamestate->cur_room_cxct = 0;
@@ -140,10 +142,14 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     char name[256]; //For storing room name
 
     //Clear name, path, and current_connects
-    free(gamestate->current_connects);
-    free(gamestate->cur_room);
-    gamestate->current_connects = malloc(sizeof(char) * (9 * MAX_CONNECTIONS));
+    if(gamestate->current_connects != NULL)
+        free(gamestate->current_connects);
+    if(gamestate->cur_room != NULL)
+        free(gamestate->cur_room);
+    gamestate->current_connects = malloc(sizeof(char) * (10 * (MAX_CONNECTIONS+1)));
+    sprintf(gamestate->current_connects, "%s", "\0");
     gamestate->cur_room = malloc(sizeof(char) * 9);
+    sprintf(gamestate->cur_room, "%s", "\0");
     //Reset current connection count
     gamestate->cur_room_cxct = 0;
 
@@ -152,7 +158,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     fgets(line, 256, room);
     memset(name, '\0', 256);
     //Room name always starts at index 11
-    strncpy(name, line + 11, strlen(line) - 11);
+    snprintf(name, 9, "%s", line + 11); 
     strcat(gamestate->cur_room, name);
    
     //For each connecting room, add that connection's name
@@ -165,8 +171,10 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
         //Copy name to current_connects
         //Note that this will also append junk from the
         //last line containing ROOM TYPE
-        strncpy(name, line + 14, strlen(line) - 14);
+        snprintf(name, 9, "%s", line + 14); 
         strcat(gamestate->current_connects, name);
+        //Add delimiter
+        strcat(gamestate->current_connects, "\n");
         //Increment current connection count
         gamestate->cur_room_cxct++;
         memset(line, '\0', 256);
@@ -214,7 +222,7 @@ FILE* findRoomByType(char *dirname, char *room_type){
             //Read through file until last line copied
             while(fgets(line, 256, current_fd)){
                 memset(line_copy, '\0', 256);
-                strcpy(line_copy, line);
+                sprintf(line_copy, "%s", line);
             }
             //If last line contains room_type, return file descriptor
             if(strstr(line_copy, room_type) != NULL){
@@ -246,7 +254,7 @@ int endRoomFound(FILE *room){
     memset(line, '\0', 256);
     while(fgets(line, 256, room)){
         memset(line_copy, '\0', 256);
-        strcpy(line_copy, line);
+        sprintf(line_copy, "%s", line);
     }
     //If last line contains "END_ROOM", return true
     if(strstr(line_copy, targetSubstr) != NULL){
@@ -277,7 +285,7 @@ void displayRoomInfo(struct GameState *gamestate){
     printf("POSSIBLE CONNECTIONS:");
     //Make a copy of current_connects for use with strtok
     memset(list_copy, '\0', 256);
-    strcpy(list_copy, gamestate->current_connects);
+    sprintf(list_copy, "%s", gamestate->current_connects);
     //For each '\n' separated name in gamestate->current_connects
     //Print name to same line
     name = strtok(list_copy, "\n");
