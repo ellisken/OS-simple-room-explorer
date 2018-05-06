@@ -323,11 +323,30 @@ void displayRoomInfo(struct GameState *gamestate){
  * ** Post-Conditions: The user input will be "saved" with the pointer
  * *********************************************************************/
 void *getTime(){
+    FILE *new_file;
+    time_t t;
+    struct tm *date_time;
+    char cur_time[256];
+    //Create string for filename
+    char file_name[30];
+    memset(file_name, '\0', 30);
+    sprintf(file_name, "%s", "currentTime.txt");
+
     //Lock the mutex for this thread
     pthread_mutex_lock(&mutex);
 
     //Create text file and print current system time
+    // 1:03pm, Tuesday, September 13, 2016
+    new_file = fopen(file_name, "wr");
+    assert(new_file > 0);
+    //Get current time
+    time(&t);
+    //Fill tm struct with local time
+    date_time = localtime(&t);
 
+    //Format current time/date
+    strftime(cur_time, sizeof(cur_time), "%l:%M%P, %A, %B %e, %Y",  date_time);
+    fprintf(new_file, "%s", cur_time);
 
     //Unlock mutex for this thread
     pthread_mutex_unlock(&mutex);
