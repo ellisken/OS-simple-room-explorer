@@ -58,7 +58,7 @@ struct GameState* initGameState(){
     gamestate->total_steps = 0;
     gamestate->cur_room_cxct = 0;
     //Allocate space for the game path
-    gamestate->path = malloc(sizeof(char) * (MAX_PATH_LENGTH * MAX_CONNECTIONS));
+    gamestate->path = malloc(sizeof(char) * (MAX_PATH_LENGTH * MAX_CONNECTIONS * 10));
     //Return Graph
     return gamestate;
 }
@@ -162,8 +162,6 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     memset(name, '\0', 256);
     //Room name always starts at index 11
     snprintf(name, 9, "%s", line + 11);
-    /*if(name[strlen(name)-1] != "\n")
-        name[strlen(name)] == "\n";*/
     strcat(gamestate->cur_room, name);
    
     //For each connecting room, add that connection's name
@@ -352,6 +350,10 @@ FILE* switchRooms(char *dirname, char *new_room, struct GameState *gamestate){
     DIR *dir = opendir(dirname);
     assert(dir > 0);
 
+    //Add new room to path
+    strcat(gamestate->path, new_room);
+    strcat(gamestate->path, "-");//Add delimiter
+
     //For each file in the directory
     while((specified_dir = readdir(dir)) != NULL){
         //If file name contains "file"
@@ -396,18 +398,21 @@ FILE* switchRooms(char *dirname, char *new_room, struct GameState *gamestate){
  *      and returns that file's handle
  * *********************************************************************/
 void endGame(struct GameState *gamestate){
-
+    int i;
+    char *name = NULL; //Pointer to store name strings for strtok
     //Display end message
     printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
     //Print total steps
     printf("YOU TOOK %i STEPS. YOUR PATH TO VICTORY WAS:\n", gamestate->total_steps);
     //Print path
+    name = strtok(gamestate->path, "-");
+    for(i=1; i < gamestate->total_steps; i++){
+        printf("%s\n", name);
+        name = strtok(NULL, "-");
+    }
     printf("%s", gamestate->path);
-
-
     return;
 }
-
 
 
 
@@ -433,12 +438,10 @@ int main(){
 
     //Find START_ROOM and END_ROOM
     memset(type, '\0', sizeof(type));
-    strcpy(type, "START_ROOM");
+    sprintf(type, "START_ROOM");
     //Point cur_file to mem location returned
     cur_file = findRoomByType(roomDirName, type);
     assert(cur_file != NULL);
-    memset(type, '\0', sizeof(type));
-    strcpy(type, "END_ROOM");
 
     //Load current room info into gamestate
     loadRoomInfo(cur_file, gamestate);
@@ -447,6 +450,7 @@ int main(){
     while(1){
         //At end?
         if(endRoomFound(cur_file)){
+            //If so, display end message, path, and steps
             endGame(gamestate);
             fclose(cur_file);
             freeGameState(gamestate);
@@ -465,14 +469,11 @@ int main(){
                 printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n");
         }
         
-        //Else, add current room to path and switch rooms
+        //Else, close current room file and switch rooms
         fclose(cur_file);
         cur_file = switchRooms(roomDirName, input, gamestate);
         //Load new room info into gamestate
         loadRoomInfo(cur_file, gamestate);
-        //Add new room to path
-        strcat(gamestate->path, gamestate->cur_room);
-        //strcat(gamestate->path, "-");//Add delimiter
     }
     return 0;
 }
