@@ -156,9 +156,14 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     //Get room name from first line and store in gamestate
     memset(line, '\0', 256);
     fgets(line, 256, room);
+    //Remove trailing newline
+    strtok(line, "\n");
+
     memset(name, '\0', 256);
     //Room name always starts at index 11
-    snprintf(name, 9, "%s", line + 11); 
+    snprintf(name, 9, "%s", line + 11);
+    /*if(name[strlen(name)-1] != "\n")
+        name[strlen(name)] == "\n";*/
     strcat(gamestate->cur_room, name);
    
     //For each connecting room, add that connection's name
@@ -280,7 +285,7 @@ void displayRoomInfo(struct GameState *gamestate){
     char list_copy[256];
     char *name = NULL; //Pointer to store name strings for strtok
     //Display current location
-    printf("CURRENT LOCATION: %s", gamestate->cur_room);
+    printf("CURRENT LOCATION: %s\n", gamestate->cur_room);
     //Display connection names
     printf("POSSIBLE CONNECTIONS:");
     //Make a copy of current_connects for use with strtok
