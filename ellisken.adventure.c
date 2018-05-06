@@ -7,6 +7,8 @@
  *      adventure.
  * ** Input: None. ellisken.buildrooms.c must be run prior to gameplay
  * ** Output: None
+ * ** NOTE: This program could use some serious refactoring, sorry in
+ *      advance.
  * *********************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,10 +19,16 @@
 #include <dirent.h>
 #include <string.h>
 #include <assert.h>
+#include <pthread.h>
 
 #define ROOM_CT 7
 #define MAX_CONNECTIONS 6
 #define MAX_PATH_LENGTH 100
+#define NUM_THREADS 1
+
+//Create threads and mutex
+pthread_t threads[NUM_THREADS];
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /***********************************************************************
 ************************** DATA STRUCTURES *****************************
@@ -306,10 +314,33 @@ void displayRoomInfo(struct GameState *gamestate){
 
 
 /*********************************************************************
+ * ** Function: getTime()
+ * ** Description: Locks the mutex and takes over from the main thread,
+ *      gets current time and prints to file called "currentTime.txt",
+ *      then unlocks the mutex.
+ * ** Parameters: Pointer to malloc'd string
+ * ** Pre-Conditions: The string must be allocated first
+ * ** Post-Conditions: The user input will be "saved" with the pointer
+ * *********************************************************************/
+void *getTime(){
+    //Lock the mutex for this thread
+    pthread_mutex_lock(&mutex);
+
+    //Create text file and print current system time
+
+
+    //Unlock mutex for this thread
+    pthread_mutex_unlock(&mutex);
+    return;
+}
+
+
+/*********************************************************************
  * ** Function: getCheckUserInput()
  * ** Description: Prompts user, saves user input in a string, 
  *      and verifies that the input room exactly matches a room 
  *      connected to the current room. Returns true if so, else returns false.
+ *      If the user enters "time", the function calls getTime().
  * ** Parameters: Pointer to malloc'd string
  * ** Pre-Conditions: The string must be allocated first
  * ** Post-Conditions: The user input will be "saved" with the pointer
@@ -322,6 +353,15 @@ int getCheckUserInput(char *input, struct GameState *gamestate){
     //Remove trailing newline in input
     strtok(input, "\n");
     printf("\n");
+    //If input == "time", trigger getTime() thread
+    if(strcmp("time", input) == 0){
+        pthread_mutex_unlock(&mutex);//Unlock mutex for main thread
+        pthread_join(threads[0], NULL);//Wait for getTime to finish
+        pthread_mutex_lock(&mutex);//Relock mutex for main thread
+        pthread_create(&(threads[0]), NULL, &getTime, NULL);//Start new getTime
+        //Read current time from created textfile and display to console
+    }
+
     //Verify name entered is connected to the current room
     if(strstr(gamestate->current_connects, input) != NULL)
         return 1;
@@ -417,6 +457,10 @@ void endGame(struct GameState *gamestate){
 ******************************** MAIN **********************************
 ***********************************************************************/
 int main(){
+    //Create threads from getCheckUserInput() and getTime()
+    pthread_create(&(threads[0]), NULL, &getTime, NULL);
+
+    pthread_mutex_lock(&mutex);
     //Create string for holding subdir name
     char *roomDirName = malloc(sizeof(char) * 256);
     char *input = malloc(sizeof(char) * 256);//Stores user input
@@ -476,5 +520,9 @@ int main(){
         strcat(gamestate->path, gamestate->cur_room);
         strcat(gamestate->path, "-");//Add delimiter
     }
+
+    //Destroy mutex
+    pthread_mutex_destroy(&mutex);
+    pthread_join(threads[0], NULL);
     return 0;
 }
