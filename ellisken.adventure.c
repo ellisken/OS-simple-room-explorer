@@ -37,7 +37,7 @@ struct GameState{
     int total_steps;//Number of total steps taken
     char *path;//For tracking path during gameplay
     char *cur_room;//For holding name of current room
-    char *current_connects;//List of current room connections;
+    char *current_connects;//List of current room connections
     int cur_room_cxct;//Connection count for current room
 };
 
@@ -158,6 +158,7 @@ void loadRoomInfo(FILE *room, struct GameState *gamestate){
     sprintf(gamestate->current_connects, "%s", "\0");
     gamestate->cur_room = malloc(sizeof(char) * 9);
     sprintf(gamestate->cur_room, "%s", "\0");
+    
     //Reset current connection count
     gamestate->cur_room_cxct = 0;
 
@@ -318,9 +319,9 @@ void displayRoomInfo(struct GameState *gamestate){
  * ** Description: Locks the mutex and takes over from the main thread,
  *      gets current time and prints to file called "currentTime.txt",
  *      then unlocks the mutex.
- * ** Parameters: Pointer to malloc'd string
- * ** Pre-Conditions: The string must be allocated first
- * ** Post-Conditions: The user input will be "saved" with the pointer
+ * ** Parameters: None
+ * ** Pre-Conditions: Mutex must be available for locking
+ * ** Post-Conditions: Mutex will be unlocked before function return
  * *********************************************************************/
 void *getTime(){
     FILE *new_file;
@@ -335,8 +336,7 @@ void *getTime(){
     //Lock the mutex for this thread
     pthread_mutex_lock(&mutex);
 
-    //Create text file and print current system time
-    // 1:03pm, Tuesday, September 13, 2016
+    //Create text file
     new_file = fopen(file_name, "wr");
     assert(new_file > 0);
     //Get current time
@@ -344,7 +344,7 @@ void *getTime(){
     //Fill tm struct with local time
     date_time = localtime(&t);
 
-    //Format current time/date
+    //Format current time/date and print to file
     strftime(cur_time, sizeof(cur_time), "%l:%M%P, %A, %B %e, %Y",  date_time);
     fprintf(new_file, "%s", cur_time);
     fclose(new_file);//Close file
@@ -360,10 +360,12 @@ void *getTime(){
  * ** Description: Prompts user, saves user input in a string, 
  *      and verifies that the input room exactly matches a room 
  *      connected to the current room. Returns true if so, else returns false.
- *      If the user enters "time", the function calls getTime().
+ *      If the user enters "time", the function allows getTime() to 
+ *      lock the mutex and execute.
  * ** Parameters: Pointer to malloc'd string
  * ** Pre-Conditions: The string must be allocated first
- * ** Post-Conditions: The user input will be "saved" with the pointer
+ * ** Post-Conditions: The user input will be "saved" with the pointer.
+ *      If "time", returns 2, if valid input, returns 1, else returns 0.
  * *********************************************************************/
 int getCheckUserInput(char *input, struct GameState *gamestate){
     FILE *file; //For retrieving date/time from currentTime.txt
@@ -380,10 +382,14 @@ int getCheckUserInput(char *input, struct GameState *gamestate){
     printf("\n");
     //If input == "time", trigger getTime() thread
     if(strcmp("time", input) == 0){
-        pthread_mutex_unlock(&mutex);//Unlock mutex for main thread
-        pthread_join(threads[0], NULL);//Wait for getTime to finish
-        pthread_mutex_lock(&mutex);//Relock mutex for main thread
-        pthread_create(&(threads[0]), NULL, &getTime, NULL);//Start new getTime
+        //Unlock mutex from main thread
+        pthread_mutex_unlock(&mutex);
+        //Wait for getTime() to finish
+        pthread_join(threads[0], NULL);
+        //Relock mutex for the main thread
+        pthread_mutex_lock(&mutex);
+        //Restart getTime() in the background
+        pthread_create(&(threads[0]), NULL, &getTime, NULL);
         //Read current time from created textfile and display to console
         file = fopen("currentTime.txt", "r");
         fgets(current_time, 256, file);
@@ -424,7 +430,7 @@ FILE* switchRooms(char *dirname, char *new_room, struct GameState *gamestate){
 
     //For each file in the directory
     while((specified_dir = readdir(dir)) != NULL){
-        //If file name contains "file"
+        //If file name contains prefix "file"
         if(strstr(specified_dir->d_name, targetPrefix) != NULL){
             //Create filepath
             memset(filepath, '\0', 256);
@@ -527,7 +533,7 @@ int main(){
             freeGameState(gamestate);
             free(roomDirName);
             free(input);
-            return;
+            return 0;
         }
         //Display room name and comma separated list of connections
         displayRoomInfo(gamestate);
