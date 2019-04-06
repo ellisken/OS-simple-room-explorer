@@ -1,1 +1,1 @@
-# CS_344_proj2
+# Second project for intro to operating systems
